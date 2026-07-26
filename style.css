@@ -942,9 +942,81 @@ html, body {
     height: auto !important;
     min-height: 100vh;
 }
-
 /* إزالة overflow:hidden من body عشان التمرير يشتغل */
 body {
     overflow-y: auto !important;
     overflow-x: hidden !important;
 }
+
+
+/* إضافة في آخر الملف */
+
+/* ===== مربع حوار تغيير اللاعب ===== */
+.change-player-dialog {
+    animation: fadeIn 0.3s ease-out;
+}
+
+.change-player-dialog .btn {
+    min-width: 120px;
+}
+
+.change-player-dialog .btn-success {
+    background: linear-gradient(135deg, #00b894, #00cec9);
+    color: white;
+    border: none;
+    border-radius: 40px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(0,206,201,0.3);
+}
+
+.change-player-dialog .btn-success:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 30px rgba(0,206,201,0.5);
+}
+
+.change-player-dialog .btn-gold-outline {
+    background: transparent;
+    color: var(--gold);
+    border: 2px solid var(--gold);
+    border-radius: 40px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.change-player-dialog .btn-gold-outline:hover {
+    background: var(--gold-gradient);
+    color: #0a0e1a;
+    border-color: transparent;
+}
+
+@keyframes fadeIn {
+    0% { opacity: 0; transform: translate(-50%, -60%) scale(0.95); }
+    100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+/* ===== باقي التعديلات ===== */
+.setup-container,
+.result-container {
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+}
+
+.result-container {
+    padding-bottom: 40px;
+}
+
+html, body {
+    overflow: auto !important;
+    height: auto !important;
+    min-height: 100vh;
+}
+
+body {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+}
+
