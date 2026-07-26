@@ -1,4 +1,4 @@
-// script.js - النسخة النهائية مع توزيع عادي/ضعيف على الخاسرين فقط
+// script.js - النسخة النهائية
 let gameState = {};
 
 // ===== بدء اللعبة =====
@@ -40,7 +40,9 @@ function startGameOriginal() {
         phase: 'legend',
         bidHistory: [],
         endCount: 0,
-        allEnded: false
+        allEnded: false,
+        skipCount: 0,
+        skipMode: false
     };
 
     localStorage.setItem('gameState', JSON.stringify(gameState));
@@ -73,6 +75,8 @@ function loadAuction() {
     if (!gameState.allEnded) gameState.allEnded = false;
     if (!gameState.remainingNormals) gameState.remainingNormals = [];
     if (!gameState.remainingVeryWeak) gameState.remainingVeryWeak = [];
+    if (!gameState.skipCount) gameState.skipCount = 0;
+    if (!gameState.skipMode) gameState.skipMode = false;
 
     updateAuctionUI();
 }
@@ -230,14 +234,13 @@ function placeBid(coachIdx, amount) {
         return;
     }
 
-    if (newBid > 50) {
-        showNotification('⚠️ المزايدة القصوى 50 مليون');
-        return;
-    }
+    // إزالة الحد الأقصى للمزايدة (50 مليون)
+    // المزايدة مفتوحة حسب الرصيد المتاح
 
     gameState.coaches.forEach(c => c.hasEnded = false);
     gameState.endCount = 0;
     gameState.allEnded = false;
+    gameState.skipMode = false;
 
     gameState.bidHistory.push({
         coach: coach.name,
@@ -268,12 +271,114 @@ function endBid(coachIdx) {
     renderCoachPanels();
 
     if (gameState.endCount >= gameState.coaches.length) {
+        // كل المدربين أنهوا
         gameState.allEnded = true;
-        endAuction();
+        
+        // التحقق: هل فيه مزايدة؟
+        const highest = getHighestBid();
+        if (highest) {
+            // فيه مزايدة → ننهي المزاد عادي
+            endAuction();
+        } else {
+            // مفيش مزايدة → نسأل هل يريد تغيير اللاعب؟
+            showChangePlayerDialog();
+        }
         return;
     }
 
     localStorage.setItem('gameState', JSON.stringify(gameState));
+}
+
+// ===== عرض مربع حوار تغيير اللاعب =====
+function showChangePlayerDialog() {
+    // إخفاء أزرار المزايدة مؤقتاً
+    document.querySelector('.coach-panels').style.pointerEvents = 'none';
+    
+    // إنشاء مربع الحوار
+    const dialog = document.createElement('div');
+    dialog.className = 'change-player-dialog';
+    dialog.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(10, 14, 26, 0.95);
+        backdrop-filter: blur(20px);
+        border: 2px solid var(--gold);
+        border-radius: 24px;
+        padding: 30px 40px;
+        z-index: 999;
+        text-align: center;
+        max-width: 90%;
+        width: 400px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+        direction: rtl;
+    `;
+    dialog.innerHTML = `
+        <h2 style="color:var(--gold);font-size:1.5em;margin-bottom:10px;">⚠️ لا توجد مزايدة</h2>
+        <p style="color:var(--text-secondary);font-size:1em;margin-bottom:20px;">
+            جميع المدربين أنهوا المزايدة دون رفع السعر.<br>
+            هل تريد تغيير اللاعب الحالي بآخر جديد؟
+        </p>
+        <div style="display:flex;gap:15px;justify-content:center;">
+            <button class="btn btn-success" onclick="changePlayer()" style="padding:10px 30px;font-size:1em;">
+                ✅ نعم، غيّر اللاعب
+            </button>
+            <button class="btn btn-gold-outline" onclick="cancelChangePlayer()" style="padding:10px 30px;font-size:1em;">
+                ❌ لا، استمر
+            </button>
+        </div>
+    `;
+    document.body.appendChild(dialog);
+}
+
+// ===== تغيير اللاعب =====
+function changePlayer() {
+    // إزالة مربع الحوار
+    const dialog = document.querySelector('.change-player-dialog');
+    if (dialog) dialog.remove();
+    
+    // إعادة تفعيل الأزرار
+    document.querySelector('.coach-panels').style.pointerEvents = 'auto';
+    
+    // حذف اللاعب الحالي من القائمة (نرميه)
+    const round = gameState.round;
+    if (round < gameState.remainingLegends.length) {
+        gameState.remainingLegends.splice(round, 1);
+    }
+    
+    // إعادة ضبط الحالة
+    gameState.currentBid = 5;
+    gameState.currentBidder = null;
+    gameState.endCount = 0;
+    gameState.allEnded = false;
+    gameState.coaches.forEach(c => c.hasEnded = false);
+    gameState.bidHistory = [];
+    gameState.skipMode = false;
+    
+    localStorage.setItem('gameState', JSON.stringify(gameState));
+    updateAuctionUI();
+    showNotification('🔄 تم تغيير اللاعب، ابدأ المزايدة من جديد');
+}
+
+// ===== إلغاء تغيير اللاعب (يكملون عليه) =====
+function cancelChangePlayer() {
+    // إزالة مربع الحوار
+    const dialog = document.querySelector('.change-player-dialog');
+    if (dialog) dialog.remove();
+    
+    // إعادة تفعيل الأزرار
+    document.querySelector('.coach-panels').style.pointerEvents = 'auto';
+    
+    // إعادة ضبط حالة "إنهاء" عشان يكملوا مزايدة
+    gameState.endCount = 0;
+    gameState.allEnded = false;
+    gameState.coaches.forEach(c => c.hasEnded = false);
+    gameState.skipMode = true;
+    
+    localStorage.setItem('gameState', JSON.stringify(gameState));
+    updateAuctionUI();
+    showNotification('🔄 استمرار المزايدة على نفس اللاعب');
 }
 
 // ===== إنهاء المزاد =====
@@ -282,7 +387,6 @@ function endAuction() {
     const legends = gameState.remainingLegends;
 
     if (round >= legends.length) {
-        // انتهت جميع الأساطير، ننتقل للنتيجة
         window.location.href = 'result.html';
         return;
     }
@@ -306,27 +410,24 @@ function endAuction() {
             winnerIdx = null;
         }
     } else {
+        // مفيش مزايدة (لن يحدث هنا لأننا نتعامل معها في showChangePlayerDialog)
         distributePlayerAutomatically(player);
         winnerIdx = null;
     }
 
-    // 2. توزيع عادي/ضعيف على الخاسرين فقط (كل خاسر ياخد لاعب واحد)
+    // 2. توزيع عادي/ضعيف على الخاسرين فقط
     const losers = gameState.coaches.filter((c, idx) => idx !== winnerIdx);
     losers.forEach((coach) => {
-        // لو معاه فلوس (≥ 3) و فيه عادي متبقي → ياخد عادي بـ 3 مليون
         if (coach.budget >= 3 && gameState.remainingNormals.length > 0) {
             const p = gameState.remainingNormals.shift();
             coach.budget -= 3;
             coach.team.push({ ...p, price: 3, type: 'normal' });
             showNotification(`🟢 ${coach.name} أخذ ${p.name} (عادي) بـ 3 مليون`);
-        }
-        // لو معوش فلوس أو نفذ العادي → ياخد ضعيف جداً مجاناً
-        else if (gameState.remainingVeryWeak.length > 0) {
+        } else if (gameState.remainingVeryWeak.length > 0) {
             const p = gameState.remainingVeryWeak.shift();
             coach.team.push({ ...p, price: 0, type: 'veryWeak' });
             showNotification(`🔴 ${coach.name} أخذ ${p.name} (ضعيف جداً) مجاناً`);
-        }
-        else {
+        } else {
             showNotification(`⚠️ لا يوجد لاعبين لتوزيعهم على ${coach.name}`);
         }
     });
@@ -338,10 +439,10 @@ function endAuction() {
     gameState.allEnded = false;
     gameState.coaches.forEach(c => c.hasEnded = false);
     gameState.bidHistory = [];
+    gameState.skipMode = false;
 
     localStorage.setItem('gameState', JSON.stringify(gameState));
 
-    // التحقق من اكتمال التشكيلة
     const allComplete = gameState.coaches.every(coach => coach.team.length >= 11);
     if (allComplete || gameState.remainingLegends.length === 0) {
         window.location.href = 'result.html';
@@ -405,6 +506,7 @@ function nextPlayer() {
     gameState.allEnded = false;
     gameState.coaches.forEach(c => c.hasEnded = false);
     gameState.bidHistory = [];
+    gameState.skipMode = false;
 
     document.getElementById('nextBtn').style.display = 'none';
     localStorage.setItem('gameState', JSON.stringify(gameState));
@@ -484,3 +586,5 @@ window.onload = function() {
 window.placeBid = placeBid;
 window.endBid = endBid;
 window.nextPlayer = nextPlayer;
+window.changePlayer = changePlayer;
+window.cancelChangePlayer = cancelChangePlayer;
