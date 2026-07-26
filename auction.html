@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>مزاد الأساطير - المزاد</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="stars" id="stars"></div>
+    <div class="football-bg">⚽</div>
+
+    <!-- الشريط العلوي -->
+    <div class="top-bar" id="topBar">
+        <div class="logo">
+            <span class="icon">⚡</span>
+            <span class="gold-text">المزاد</span>
+        </div>
+        <div class="top-stats">
+            <div class="stat-item">
+                <div class="label">الجولة</div>
+                <div class="value" id="roundInfo">1 / 30</div>
+            </div>
+            <div class="stat-item">
+                <div class="label">💰 رصيدك</div>
+                <div class="value" id="myBudget">--</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- بطاقة اللاعب في النص -->
+    <div class="player-card-3d" id="playerCard">
+        <div class="glow-effect"></div>
+        <div class="card-content">
+            <div class="player-image-container">
+                <img id="playerImage" src="images/default.png" alt="لاعب" class="player-image">
+                <span class="legend-badge" id="legendBadge">⭐ أسطورة</span>
+            </div>
+            <div class="player-info">
+                <h2 id="playerName">رونالدو</h2>
+                <p id="playerPosition">هجوم</p>
+                <div class="player-stats">
+                    <span>⚔️ <strong id="pAttack">98</strong></span>
+                    <span>🛡️ <strong id="pDefense">45</strong></span>
+                    <span>💨 <strong id="pSpeed">92</strong></span>
+                </div>
+                <div class="player-power">
+                    القوة: <strong id="pPower" class="text-gold">78.3</strong>
+                </div>
+            </div>
+        </div>
+        <div class="bid-info">
+            <span>المزايدة الحالية: </span>
+            <span class="current-bid" id="currentBid">5</span>
+            <span> مليون</span>
+            <span id="currentBidder" class="bidder-name">(لا يوجد)</span>
+        </div>
+    </div>
+
+    <!-- أزرار المنتصف -->
+    <div class="center-actions">
+        <button class="btn btn-success btn-sm" id="nextBtn" style="display:none;" onclick="nextPlayer()">
+            ▶️ التالي
+        </button>
+        <button class="btn btn-gold-outline btn-sm" onclick="window.location.href='index.html'">
+            🔙 رجوع
+        </button>
+    </div>
+
+    <!-- لوحات المدربين (الزوايا) -->
+    <div class="coach-panels" id="coachPanels"></div>
+
+    <script src="players.js"></script>
+    <script src="script.js"></script>
+    <script>
+        function createStars() {
+            const container = document.getElementById('stars');
+            for (let i = 0; i < 60; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.setProperty('--duration', (2 + Math.random() * 4) + 's');
+                star.style.width = (1 + Math.random() * 3) + 'px';
+                star.style.height = star.style.width;
+                container.appendChild(star);
+            }
+        }
+        createStars();
+    </script>
+</body>
+</html>

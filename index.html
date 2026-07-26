@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>مزاد الأساطير</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- شاشة تحميل -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">⚽ جاري التحميل...</div>
+        <div style="color:#555;font-size:0.7em;margin-top:8px;letter-spacing:2px;">مزاد الأساطير</div>
+    </div>
+
+    <!-- خلفية -->
+    <div class="stars" id="stars"></div>
+    <div class="football-bg">⚽</div>
+
+    <div class="setup-container" id="setupScreen">
+        <!-- الشريط العلوي -->
+        <div class="top-bar">
+            <div class="logo">
+                <span class="icon">🏆</span>
+                <span class="gold-text">مزاد<span class="sub-text">الأساطير</span></span>
+            </div>
+            <div class="top-stats">
+                <div class="stat-item">
+                    <div class="label">المدربين</div>
+                    <div class="value" id="displayCount">3</div>
+                </div>
+                <div class="stat-item">
+                    <div class="label">التشكيلة</div>
+                    <div class="value" id="displayFormation">4-3-3</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- العنوان -->
+        <div class="header-section">
+            <h1 class="main-title">🔥 المزاد الأسطوري</h1>
+            <p class="main-subtitle">أذكى مدرب يبني أقوى فريق في التاريخ</p>
+        </div>
+
+        <!-- الإعدادات الأساسية -->
+        <div class="setup-grid">
+            <div class="setup-group">
+                <label>💰 رأس المال</label>
+                <div class="input-wrapper">
+                    <input type="number" id="budget" value="100" min="50" max="500">
+                    <span class="input-suffix">مليون €</span>
+                </div>
+            </div>
+            <div class="setup-group">
+                <label>📋 التشكيلة</label>
+                <select id="formation" onchange="updateDisplay()">
+                    <option value="4-3-3">4-3-3 (هجومي)</option>
+                    <option value="4-4-2">4-4-2 (متوازن)</option>
+                    <option value="3-5-2">3-5-2 (دفاعي)</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- المدربين -->
+        <div class="coaches-section">
+            <div class="coaches-header">
+                <label>✏️ أسماء المدربين</label>
+                <button type="button" class="btn-add-coach" onclick="addCoach()">
+                    <span>➕</span> إضافة مدرب
+                </button>
+            </div>
+            <div id="coachNamesContainer">
+                <!-- سيتم إضافة المدربين ديناميكياً -->
+            </div>
+        </div>
+
+        <!-- زر البداية -->
+        <button class="btn-start" onclick="startGame()">
+            <span class="btn-icon">🚀</span> ابدأ المزاد
+        </button>
+
+        <!-- تذييل -->
+        <div class="footer">
+            ⚡ كل الحقوق محفوظة © 2026
+        </div>
+    </div>
+
+    <script>
+        // ===== إدارة المدربين =====
+        let coachNames = ['أحمد', 'خالد', 'سعيد'];
+
+        function renderCoachInputs() {
+            const container = document.getElementById('coachNamesContainer');
+            container.innerHTML = '';
+            coachNames.forEach((name, index) => {
+                const div = document.createElement('div');
+                div.className = 'coach-input-row';
+                
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.value = name;
+                input.placeholder = `المدرب ${index+1}`;
+                input.addEventListener('input', (e) => {
+                    coachNames[index] = e.target.value;
+                });
+                
+                const removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.className = 'btn-remove-coach';
+                removeBtn.textContent = '✖';
+                removeBtn.onclick = () => {
+                    if (coachNames.length <= 2) {
+                        alert('يجب أن يكون هناك مدربان على الأقل');
+                        return;
+                    }
+                    coachNames.splice(index, 1);
+                    renderCoachInputs();
+                    updateDisplay();
+                };
+                
+                div.appendChild(input);
+                div.appendChild(removeBtn);
+                container.appendChild(div);
+            });
+            updateDisplay();
+        }
+
+        function addCoach() {
+            coachNames.push(`مدرب ${coachNames.length+1}`);
+            renderCoachInputs();
+        }
+
+        function updateDisplay() {
+            document.getElementById('displayCount').textContent = coachNames.length;
+            const form = document.getElementById('formation').value;
+            document.getElementById('displayFormation').textContent = form;
+        }
+
+        window.startGame = function() {
+            const names = coachNames.filter(n => n.trim() !== '');
+            if (names.length < 2) {
+                alert('يرجى إدخال اسمين على الأقل');
+                return;
+            }
+            localStorage.setItem('tempCoachNames', JSON.stringify(names));
+            if (typeof window.startGameOriginal === 'function') {
+                window.startGameOriginal();
+            } else {
+                alert('حدث خطأ، يرجى تحديث الصفحة');
+            }
+        };
+
+        function createStars() {
+            const container = document.getElementById('stars');
+            for (let i = 0; i < 80; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.setProperty('--duration', (2 + Math.random() * 4) + 's');
+                star.style.width = (1 + Math.random() * 3) + 'px';
+                star.style.height = star.style.width;
+                container.appendChild(star);
+            }
+        }
+        createStars();
+
+        setTimeout(() => {
+            document.getElementById('loadingScreen').classList.add('hidden');
+        }, 800);
+
+        renderCoachInputs();
+        window.addCoach = addCoach;
+        window.renderCoachInputs = renderCoachInputs;
+    </script>
+
+    <script src="players.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
