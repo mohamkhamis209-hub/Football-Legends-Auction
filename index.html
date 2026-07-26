@@ -29,7 +29,7 @@
             <div class="top-stats">
                 <div class="stat-item">
                     <div class="label">المدربين</div>
-                    <div class="value" id="displayCount">3</div>
+                    <div class="value" id="displayCount">0</div>
                 </div>
                 <div class="stat-item">
                     <div class="label">التشكيلة</div>
@@ -66,13 +66,16 @@
         <!-- المدربين -->
         <div class="coaches-section">
             <div class="coaches-header">
-                <label>✏️ أسماء المدربين</label>
+                <label>✏️ أسماء المدربين (حد أقصى 4)</label>
                 <button type="button" class="btn-add-coach" onclick="addCoach()">
                     <span>➕</span> إضافة مدرب
                 </button>
             </div>
             <div id="coachNamesContainer">
-                <!-- سيتم إضافة المدربين ديناميكياً -->
+                <!-- سيتم إضافة المدربين ديناميكياً - يبدأ فاضي -->
+            </div>
+            <div id="coachWarning" style="color:#ff6b6b;font-size:0.8em;margin-top:8px;display:none;">
+                ⚠️ يجب إضافة مدربين على الأقل
             </div>
         </div>
 
@@ -88,8 +91,8 @@
     </div>
 
     <script>
-        // ===== إدارة المدربين =====
-        let coachNames = [ ];
+        // ===== إدارة المدربين (يبدأ فاضي، حد أقصى 4) =====
+        let coachNames = [];
 
         function renderCoachInputs() {
             const container = document.getElementById('coachNamesContainer');
@@ -111,10 +114,6 @@
                 removeBtn.className = 'btn-remove-coach';
                 removeBtn.textContent = '✖';
                 removeBtn.onclick = () => {
-                    if (coachNames.length <= 2) {
-                        alert('يجب أن يكون هناك مدربان على الأقل');
-                        return;
-                    }
                     coachNames.splice(index, 1);
                     renderCoachInputs();
                     updateDisplay();
@@ -128,6 +127,10 @@
         }
 
         function addCoach() {
+            if (coachNames.length >= 4) {
+                alert('⚠️ الحد الأقصى 4 مدربين فقط');
+                return;
+            }
             coachNames.push(`مدرب ${coachNames.length+1}`);
             renderCoachInputs();
         }
@@ -136,12 +139,21 @@
             document.getElementById('displayCount').textContent = coachNames.length;
             const form = document.getElementById('formation').value;
             document.getElementById('displayFormation').textContent = form;
+            
+            // إظهار/إخفاء التحذير
+            const warning = document.getElementById('coachWarning');
+            if (coachNames.length < 2) {
+                warning.style.display = 'block';
+                warning.textContent = `⚠️ يجب إضافة ${2 - coachNames.length} مدربين على الأقل`;
+            } else {
+                warning.style.display = 'none';
+            }
         }
 
         window.startGame = function() {
             const names = coachNames.filter(n => n.trim() !== '');
             if (names.length < 2) {
-                alert('يرجى إدخال اسمين على الأقل');
+                alert('⚠️ يجب إضافة مدربين على الأقل (2 إلى 4 مدربين)');
                 return;
             }
             localStorage.setItem('tempCoachNames', JSON.stringify(names));
