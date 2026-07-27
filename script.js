@@ -1,10 +1,26 @@
-// script.js - النسخة النهائية مع دعم الكمبيوتر (AI)
+// script.js - النسخة النهائية
 let gameState = {};
-let aiTimer = null; // لتأخير قرارات الكمبيوتر
+let aiTimer = null;
 
 // ===== بدء اللعبة =====
 function startGameOriginal() {
     let names = JSON.parse(localStorage.getItem('tempCoachNames') || '[]');
+    const mode = localStorage.getItem('gameMode') || 'local';
+    
+    // ===== وضع أونلاين: ضبط المدربين تلقائياً =====
+    if (mode === 'online') {
+        if (names.length < 4) {
+            const playerName = names.length > 0 ? names[0] : 'أنت';
+            names = [
+                playerName,
+                'كمبيوتر (سهل) 🤖',
+                'كمبيوتر (متوسط) 🤖',
+                'كمبيوتر (صعب) 🤖'
+            ];
+        }
+        localStorage.setItem('tempCoachNames', JSON.stringify(names));
+    }
+    
     if (names.length < 2) {
         alert('يرجى إدخال اسمين على الأقل');
         return;
@@ -12,8 +28,6 @@ function startGameOriginal() {
 
     const budget = parseInt(document.getElementById('budget').value);
     const formation = document.getElementById('formation').value;
-    const mode = localStorage.getItem('gameMode') || 'local';
-    const aiDifficulty = localStorage.getItem('aiDifficulty') || 'medium';
 
     if (typeof playersData === 'undefined') {
         alert('❌ البيانات غير محملة. تأكد من وجود ملف players.js');
@@ -24,17 +38,40 @@ function startGameOriginal() {
     const shuffledNormals = shuffleArray([...playersData.normals]);
     const shuffledVeryWeak = shuffleArray([...playersData.veryWeak]);
 
-    // تحديد المدربين: في وضع AI، المدرب الأول هو اللاعب والباقي كمبيوتر
-    const isAIMode = mode === 'ai';
-    const coaches = names.map((name, idx) => ({
-        name: name,
-        budget: budget,
-        team: [],
-        coach: null,
-        totalPower: 0,
-        hasEnded: false,
-        isAI: isAIMode && idx > 0 // في وضع AI، كل المدربين ما عدا الأول هم كمبيوتر
-    }));
+    const isAIMode = mode === 'ai' || mode === 'online';
+    const coaches = names.map((name, idx) => {
+        let isAI = false;
+        let aiDifficulty = 'medium';
+        
+        if (mode === 'online') {
+            if (idx === 0) {
+                isAI = false;
+            } else if (idx === 1) {
+                isAI = true;
+                aiDifficulty = 'easy';
+            } else if (idx === 2) {
+                isAI = true;
+                aiDifficulty = 'medium';
+            } else if (idx === 3) {
+                isAI = true;
+                aiDifficulty = 'hard';
+            }
+        } else if (mode === 'ai') {
+            isAI = idx > 0;
+            aiDifficulty = localStorage.getItem('aiDifficulty') || 'medium';
+        }
+        
+        return {
+            name: name,
+            budget: budget,
+            team: [],
+            coach: null,
+            totalPower: 0,
+            hasEnded: false,
+            isAI: isAI,
+            aiDifficulty: aiDifficulty
+        };
+    });
 
     gameState = {
         coaches: coaches,
@@ -53,8 +90,9 @@ function startGameOriginal() {
         skipMode: false,
         isGameOver: false,
         isAIMode: isAIMode,
-        aiDifficulty: aiDifficulty,
-        aiDelay: aiDifficulty === 'easy' ? 1500 : aiDifficulty === 'medium' ? 1000 : 600,
+        gameMode: mode,
+        aiDifficulty: 'medium',
+        aiDelay: 1000,
         isAIProcessing: false
     };
 
@@ -96,7 +134,6 @@ function loadAuction() {
 
     updateAuctionUI();
     
-    // لو في وضع AI، نبدأ الكمبيوتر
     if (gameState.isAIMode) {
         processAI();
     }
@@ -190,7 +227,6 @@ function renderCoachPanels() {
             panel.classList.add('active-panel');
         }
 
-        // إضافة علامة "AI" للكمبيوتر
         const aiBadge = coach.isAI ? ' 🤖' : '';
 
         const header = document.createElement('div');
@@ -204,7 +240,6 @@ function renderCoachPanels() {
         const buttonsDiv = document.createElement('div');
         buttonsDiv.className = 'coach-buttons';
 
-        // أزرار المزايدة (لللاعب فقط، الكمبيوتر يلعب تلقائياً)
         if (!coach.isAI) {
             const bidAmounts = [1, 5, 10];
             bidAmounts.forEach(amount => {
@@ -221,7 +256,6 @@ function renderCoachPanels() {
             });
         }
 
-        // زر إنهاء (لللاعب فقط، الكمبيوتر ينهي تلقائياً)
         if (!coach.isAI) {
             const endBtn = document.createElement('button');
             endBtn.textContent = coach.hasEnded ? '✅ أنهيت' : '⏹ إنهاء';
@@ -232,7 +266,6 @@ function renderCoachPanels() {
             };
             buttonsDiv.appendChild(endBtn);
         } else {
-            // الكمبيوتر: عرض حالة "يتفكر..." أو "أنهى"
             const statusBtn = document.createElement('button');
             statusBtn.textContent = coach.hasEnded ? '🤖 أنهى' : '🤖 يتفكر...';
             statusBtn.className = `end-btn bid-btn-small ${coach.hasEnded ? 'done' : ''}`;
@@ -269,7 +302,7 @@ function renderCoachPanels() {
     });
 }
 
-// ===== المزايدة (لللاعب) =====
+// ===== المزايدة =====
 function placeBid(coachIdx, amount) {
     const coach = gameState.coaches[coachIdx];
     const highest = getHighestBid();
@@ -281,7 +314,6 @@ function placeBid(coachIdx, amount) {
         return;
     }
 
-    // إلغاء أي قرارات للكمبيوتر معلقة
     if (aiTimer) {
         clearTimeout(aiTimer);
         aiTimer = null;
@@ -308,13 +340,12 @@ function placeBid(coachIdx, amount) {
 
     localStorage.setItem('gameState', JSON.stringify(gameState));
 
-    // لو في وضع AI، نشغل الكمبيوتر
     if (gameState.isAIMode) {
         processAI();
     }
 }
 
-// ===== إنهاء المزايدة (لللاعب) =====
+// ===== إنهاء المزايدة =====
 function endBid(coachIdx) {
     const coach = gameState.coaches[coachIdx];
     if (coach.hasEnded) {
@@ -322,7 +353,6 @@ function endBid(coachIdx) {
         return;
     }
 
-    // إلغاء أي قرارات للكمبيوتر معلقة
     if (aiTimer) {
         clearTimeout(aiTimer);
         aiTimer = null;
@@ -346,39 +376,33 @@ function endBid(coachIdx) {
 
     localStorage.setItem('gameState', JSON.stringify(gameState));
 
-    // لو في وضع AI، نشغل الكمبيوتر
     if (gameState.isAIMode) {
         processAI();
     }
 }
 
-// ===== ذكاء الكمبيوتر (AI) =====
+// ===== ذكاء الكمبيوتر =====
 function processAI() {
-    // منع تنفيذ متزامن
     if (gameState.isAIProcessing) return;
     if (gameState.allEnded) return;
     if (gameState.isGameOver) return;
 
-    // تأكد إن اللاعب الحالي موجود
     const round = gameState.round;
     if (round >= gameState.remainingLegends.length) return;
 
     const player = gameState.remainingLegends[round];
     if (!player) return;
 
-    // العثور على مدرب كمبيوتر لم ينهي بعد وليس هو الفائز الحالي
     const aiCoaches = gameState.coaches.filter(c => c.isAI && !c.hasEnded);
     if (aiCoaches.length === 0) return;
 
     gameState.isAIProcessing = true;
 
-    // تأخير قرار الكمبيوتر عشان يبان طبيعي
     const delay = gameState.aiDelay || 1000;
     aiTimer = setTimeout(() => {
         aiTimer = null;
         gameState.isAIProcessing = false;
 
-        // التأكد من أن الكمبيوتر لسه شغال
         if (gameState.allEnded || gameState.isGameOver) return;
 
         const currentPlayer = gameState.remainingLegends[gameState.round];
@@ -387,7 +411,6 @@ function processAI() {
         const highest = getHighestBid();
         const currentPrice = highest ? highest.amount : 5;
 
-        // لكل مدرب كمبيوتر لم ينهي بعد
         for (let coach of aiCoaches) {
             if (coach.hasEnded) continue;
             if (gameState.allEnded) break;
@@ -395,7 +418,6 @@ function processAI() {
             const decision = aiDecision(coach, currentPlayer, currentPrice);
             
             if (decision.action === 'bid') {
-                // يزايد
                 const amount = decision.amount || 1;
                 const newBid = currentPrice + amount;
                 
@@ -420,7 +442,6 @@ function processAI() {
 
                     localStorage.setItem('gameState', JSON.stringify(gameState));
                     
-                    // الكمبيوتر يزايد تاني بعد تأخير
                     setTimeout(() => {
                         if (!gameState.allEnded && !gameState.isGameOver) {
                             processAI();
@@ -429,7 +450,6 @@ function processAI() {
                     return;
                 }
             } else if (decision.action === 'end') {
-                // ينهي المزايدة
                 coach.hasEnded = true;
                 gameState.endCount = (gameState.endCount || 0) + 1;
                 renderCoachPanels();
@@ -448,7 +468,6 @@ function processAI() {
             }
         }
 
-        // لو لسه في مدربين كمبيوتر لم ينهوا ولم يزايدوا، نكرر العملية
         const remainingAI = gameState.coaches.filter(c => c.isAI && !c.hasEnded);
         if (remainingAI.length > 0 && !gameState.allEnded && !gameState.isGameOver) {
             setTimeout(() => processAI(), 500);
@@ -459,13 +478,11 @@ function processAI() {
 
 // ===== قرار الكمبيوتر =====
 function aiDecision(coach, player, currentPrice) {
-    const difficulty = gameState.aiDifficulty || 'medium';
+    const difficulty = coach.aiDifficulty || 'medium';
     
-    // 1. هل اللاعب في مركز محتاجه؟
     const neededPositions = getNeededPositions(coach);
     const isNeeded = neededPositions.includes(player.position) || neededPositions.includes('any');
     
-    // 2. قيمة اللاعب حسب مستواه
     const rating = player.rating || Math.round((player.attack + player.defense + player.speed) / 3);
     let maxPrice = 10;
     if (rating >= 95) maxPrice = 45;
@@ -475,34 +492,25 @@ function aiDecision(coach, player, currentPrice) {
     else if (rating >= 75) maxPrice = 12;
     else maxPrice = 8;
 
-    // 3. تعديل حسب الصعوبة
     if (difficulty === 'easy') {
-        maxPrice = maxPrice * 0.6;
+        maxPrice = maxPrice * 0.5;
     } else if (difficulty === 'hard') {
-        maxPrice = maxPrice * 1.2;
+        maxPrice = maxPrice * 1.3;
     }
 
-    // 4. هل السعر الحالي مناسب؟
     const priceIsGood = currentPrice < maxPrice;
-    
-    // 5. نسبة المنافسة (كم مدرب بيكتروا المزايدة)
     const activeBidders = gameState.bidHistory.filter(b => b.amount >= currentPrice).length;
-    const competition = activeBidders > 2 ? 0.7 : activeBidders > 1 ? 0.85 : 1;
-    
-    // 6. هل الكمبيوتر عنده فلوس كافية؟
+    const competition = activeBidders > 2 ? 0.6 : activeBidders > 1 ? 0.8 : 1;
     const hasMoney = coach.budget > currentPrice + 1;
 
-    // 7. القرار النهائي
     const shouldBid = isNeeded && priceIsGood && hasMoney && Math.random() < competition;
     const shouldEnd = !shouldBid || (currentPrice > coach.budget * 0.4 && difficulty !== 'hard');
 
-    // 8. تحديد المبلغ
     let bidAmount = 1;
     if (difficulty === 'easy') bidAmount = 1;
     else if (difficulty === 'medium') bidAmount = Math.random() > 0.5 ? 1 : 5;
     else bidAmount = Math.random() > 0.6 ? 5 : 10;
 
-    // لو اللاعب مهم جداً، يزايد بقوة
     if (rating >= 90 && isNeeded && difficulty === 'hard') {
         bidAmount = Math.random() > 0.5 ? 10 : 5;
     }
@@ -516,28 +524,22 @@ function aiDecision(coach, player, currentPrice) {
     }
 }
 
-// ===== تحديد المراكز الناقصة =====
 function getNeededPositions(coach) {
     const positions = coach.team.map(p => p.position);
     const needed = [];
     
-    // مراكز الهجوم
     const attackers = positions.filter(p => p.includes('هجوم') || p.includes('جناح') || p.includes('مهاجم'));
     if (attackers.length < 3) needed.push('هجوم');
     
-    // مراكز الوسط
     const midfielders = positions.filter(p => p.includes('وسط') || p.includes('صانع'));
     if (midfielders.length < 3) needed.push('وسط');
     
-    // مراكز الدفاع
     const defenders = positions.filter(p => p.includes('دفاع') || p.includes('ظهير') || p.includes('قلب'));
     if (defenders.length < 4) needed.push('دفاع');
     
-    // حراس المرمى
     const goalkeepers = positions.filter(p => p.includes('حارس'));
     if (goalkeepers.length < 1) needed.push('حارس');
     
-    // لو التشكيلة فاضية، يحتاج كل حاجة
     if (coach.team.length === 0) {
         return ['any'];
     }
@@ -545,7 +547,7 @@ function getNeededPositions(coach) {
     return needed.length > 0 ? needed : ['any'];
 }
 
-// ===== باقي الدوال =====
+// ===== مربع حوار تغيير اللاعب =====
 function showChangePlayerDialog() {
     document.querySelector('.coach-panels').style.pointerEvents = 'none';
     
@@ -634,6 +636,7 @@ function cancelChangePlayer() {
     }
 }
 
+// ===== إنهاء المزاد =====
 function endAuction() {
     const round = gameState.round;
     const legends = gameState.remainingLegends;
