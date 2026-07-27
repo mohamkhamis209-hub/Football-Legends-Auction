@@ -431,7 +431,7 @@ body::before {
 }
 
 /* ============================================
-   شاشة المزاد (الزوايا) - إصلاح الكتابة للزوايا العلوية
+   شاشة المزاد
 ============================================ */
 #topBar {
     position: fixed;
@@ -525,7 +525,17 @@ body::before {
 
 .player-info { flex: 1; min-width: 100px; }
 .player-info h2 { font-size: 1.3em; margin: 0; }
-.player-info p { color: var(--text-secondary); font-size: 0.8em; margin: 2px 0; }
+.player-info p { 
+    color: var(--text-secondary); 
+    font-size: 1em; 
+    margin: 4px 0;
+    font-weight: 700;
+    background: rgba(255, 215, 0, 0.08);
+    padding: 4px 12px;
+    border-radius: 20px;
+    display: inline-block;
+    border: 1px solid rgba(255, 215, 0, 0.15);
+}
 
 .player-stats {
     display: flex;
@@ -598,7 +608,7 @@ body::before {
 .btn-primary:hover { transform: scale(1.05); }
 
 /* ============================================
-   لوحات المدربين (الزوايا الأربعة) - إصلاح الكتابة
+   لوحات المدربين (الزوايا الأربعة) - النسخة النهائية
 ============================================ */
 .coach-panels {
     position: fixed;
@@ -659,6 +669,87 @@ body::before {
     text-align: left;
 }  /* أعلى يسار */
 
+/* ===== جميع النصوص داخل اللوحات العلوية مقلوبة 180 درجة ===== */
+.coach-panel[data-index="1"] *,
+.coach-panel[data-index="3"] * {
+    transform: rotate(180deg);
+}
+
+/* ===== استثناء الأزرار عشان تفضل قابلة للضغط ===== */
+.coach-panel[data-index="1"] .coach-buttons button,
+.coach-panel[data-index="3"] .coach-buttons button {
+    transform: rotate(180deg);
+}
+
+/* ===== تنسيق رأس اللوحة (اسم المدرب والمبلغ) ===== */
+.coach-panel .coach-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9em;
+    width: 100%;
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(255, 215, 0, 0.1);
+    margin-bottom: 4px;
+}
+
+/* ===== اسم المدرب ===== */
+.coach-panel .coach-name { 
+    font-weight: 700; 
+    font-size: 1em; 
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    flex: 1;
+    color: #ffffff;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.1);
+}
+
+/* الزوايا السفلية - اسم المدرب */
+.coach-panel[data-index="0"] .coach-name,
+.coach-panel[data-index="2"] .coach-name {
+    direction: rtl;
+    text-align: right;
+    font-size: 1.05em;
+}
+
+/* الزوايا العلوية - اسم المدرب (مقلوب) */
+.coach-panel[data-index="1"] .coach-name,
+.coach-panel[data-index="3"] .coach-name {
+    direction: rtl;
+    text-align: right;
+    transform: rotate(180deg);
+    font-size: 1.05em;
+}
+
+/* ===== المبلغ ===== */
+.coach-panel .coach-budget { 
+    color: var(--gold); 
+    font-weight: 900; 
+    font-size: 1em; 
+    flex-shrink: 0;
+    direction: ltr;
+    text-align: left;
+    background: rgba(255, 215, 0, 0.08);
+    padding: 2px 10px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 215, 0, 0.1);
+}
+
+/* الزوايا السفلية - المبلغ */
+.coach-panel[data-index="0"] .coach-budget,
+.coach-panel[data-index="2"] .coach-budget {
+    margin-right: 5px;
+}
+
+/* الزوايا العلوية - المبلغ (مقلوب) */
+.coach-panel[data-index="1"] .coach-budget,
+.coach-panel[data-index="3"] .coach-budget {
+    transform: rotate(180deg);
+    margin-left: 5px;
+    margin-right: 0;
+}
+
 /* ===== إعادة ترتيب المحتويات داخل اللوحات المقلوبة ===== */
 .coach-panel[data-index="1"] .coach-header,
 .coach-panel[data-index="3"] .coach-header {
@@ -675,54 +766,7 @@ body::before {
     flex-direction: row-reverse;
 }
 
-/* ===== تنسيق محتويات اللوحة (عام) ===== */
-.coach-panel .coach-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.85em;
-    width: 100%;
-}
-
-.coach-panel .coach-name { 
-    font-weight: 700; 
-    font-size: 1em; 
-    white-space: nowrap; 
-    overflow: hidden; 
-    text-overflow: ellipsis; 
-    flex: 1;
-}
-
-.coach-panel[data-index="0"] .coach-name,
-.coach-panel[data-index="2"] .coach-name {
-    direction: rtl;
-    text-align: right;
-}
-
-.coach-panel[data-index="1"] .coach-name,
-.coach-panel[data-index="3"] .coach-name {
-    direction: rtl;
-    text-align: right;
-    transform: rotate(180deg);
-}
-
-.coach-panel .coach-budget { 
-    color: var(--gold); 
-    font-weight: 700; 
-    font-size: 0.9em; 
-    margin-right: 5px;
-    flex-shrink: 0;
-    direction: ltr;
-    text-align: left;
-}
-
-.coach-panel[data-index="1"] .coach-budget,
-.coach-panel[data-index="3"] .coach-budget {
-    transform: rotate(180deg);
-    margin-left: 5px;
-    margin-right: 0;
-}
-
+/* ===== أزرار المزايدة ===== */
 .coach-panel .coach-buttons {
     display: flex;
     gap: 6px;
@@ -779,6 +823,7 @@ body::before {
     opacity: 0.7;
 }
 
+/* ===== أسماء اللاعبين في التشكيلة ===== */
 .coach-panel .coach-players {
     display: flex;
     flex-wrap: wrap;
@@ -1017,6 +1062,7 @@ body::before {
     .player-card-3d { padding: 12px; max-width: 92%; }
     .player-image-container { width: 65px; height: 65px; }
     .player-info h2 { font-size: 1.1em; }
+    .player-info p { font-size: 0.85em; padding: 3px 10px; }
     .player-stats span { font-size: 0.6em; padding: 2px 6px; }
     .top-bar { padding: 6px 12px; font-size: 0.7em; }
     .stat-item { padding: 1px 8px; }
@@ -1042,6 +1088,7 @@ body::before {
     .player-card-3d { padding: 10px; }
     .player-image-container { width: 55px; height: 55px; }
     .player-info h2 { font-size: 1em; }
+    .player-info p { font-size: 0.75em; padding: 2px 8px; }
     .player-stats { gap: 4px; }
     .player-stats span { font-size: 0.55em; padding: 1px 5px; }
     .current-bid { font-size: 1em; }
