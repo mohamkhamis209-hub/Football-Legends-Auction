@@ -608,7 +608,7 @@ body::before {
 .btn-primary:hover { transform: scale(1.05); }
 
 /* ============================================
-   لوحات المدربين - متجاوبة مع جميع الأجهزة
+   لوحات المدربين - تكبير المربعات + شريط تمرير
 ============================================ */
 .coach-panels {
     position: fixed;
@@ -627,54 +627,50 @@ body::before {
     backdrop-filter: blur(16px);
     border: 1px solid var(--glass-border);
     border-radius: 20px;
-    padding: 12px 14px;
+    padding: 14px 16px;
     box-shadow: 0 8px 32px rgba(0,0,0,0.7);
     transition: var(--transition);
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
 }
 
-/* ===== أحجام اللوحات حسب الجهاز ===== */
-/* الكمبيوتر والتابلت (شاشات كبيرة) */
+/* ===== تكبير المربعات ===== */
 .coach-panel {
-    width: 190px;
-    max-width: 46vw;
+    width: 220px;
+    max-width: 50vw;
 }
 
-/* التليفون (شاشات صغيرة) */
+/* التليفونات */
 @media (max-width: 768px) {
     .coach-panel {
-        width: 160px;
-        max-width: 44vw;
-        padding: 10px 12px;
+        width: 190px;
+        max-width: 48vw;
+        padding: 12px 14px;
     }
 }
 
 @media (max-width: 500px) {
     .coach-panel {
-        width: 140px;
-        max-width: 42vw;
-        padding: 8px 10px;
-        border-radius: 14px;
+        width: 170px;
+        max-width: 46vw;
+        padding: 10px 12px;
     }
 }
 
 @media (max-width: 400px) {
     .coach-panel {
-        width: 120px;
-        max-width: 40vw;
-        padding: 6px 8px;
-        border-radius: 12px;
+        width: 150px;
+        max-width: 44vw;
+        padding: 8px 10px;
     }
 }
 
 @media (max-width: 350px) {
     .coach-panel {
-        width: 105px;
-        max-width: 38vw;
-        padding: 5px 6px;
-        border-radius: 10px;
+        width: 130px;
+        max-width: 42vw;
+        padding: 6px 8px;
     }
 }
 
@@ -709,20 +705,21 @@ body::before {
     transform: rotate(180deg);
 }
 
-/* ===== تنسيق محتويات اللوحة ===== */
+/* ===== تنسيق رأس اللوحة ===== */
 .coach-panel .coach-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 0.85em;
+    font-size: 0.95em;
     width: 100%;
     padding: 4px 0;
     border-bottom: 1px solid rgba(255, 215, 0, 0.1);
-    margin-bottom: 4px;
+    margin-bottom: 6px;
 }
 
 .coach-panel .coach-name { 
     font-weight: 700;
+    font-size: 1.1em;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -736,87 +733,16 @@ body::before {
     font-weight: 900;
     flex-shrink: 0;
     background: rgba(255, 215, 0, 0.08);
-    padding: 2px 8px;
+    padding: 3px 10px;
     border-radius: 10px;
     border: 1px solid rgba(255, 215, 0, 0.1);
-    font-size: 0.85em;
+    font-size: 0.95em;
 }
 
-/* ===== أحجام النصوص والأزرار حسب الجهاز ===== */
-/* الكمبيوتر والتابلت */
-.coach-panel .coach-name { font-size: 1em; }
-.coach-panel .coach-budget { font-size: 0.9em; }
-.coach-panel .coach-buttons button {
-    font-size: 0.8em;
-    padding: 8px 8px;
-    min-width: 40px;
-}
-
-/* التليفون */
-@media (max-width: 768px) {
-    .coach-panel .coach-name { font-size: 0.85em; }
-    .coach-panel .coach-budget { font-size: 0.75em; padding: 2px 6px; }
-    .coach-panel .coach-buttons button {
-        font-size: 0.7em;
-        padding: 6px 6px;
-        min-width: 32px;
-    }
-    .coach-panel .coach-players .player-tag { font-size: 0.5em; }
-    .coach-panel .coach-players { max-height: 50px; }
-}
-
-@media (max-width: 500px) {
-    .coach-panel .coach-name { font-size: 0.75em; }
-    .coach-panel .coach-budget { font-size: 0.7em; padding: 2px 5px; }
-    .coach-panel .coach-buttons button {
-        font-size: 0.65em;
-        padding: 5px 5px;
-        min-width: 28px;
-        border-radius: 8px;
-    }
-    .coach-panel .coach-players .player-tag {
-        font-size: 0.45em;
-        padding: 1px 5px;
-    }
-    .coach-panel .coach-players { max-height: 40px; }
-}
-
-@media (max-width: 400px) {
-    .coach-panel .coach-name { font-size: 0.65em; }
-    .coach-panel .coach-budget { font-size: 0.6em; padding: 1px 4px; }
-    .coach-panel .coach-buttons button {
-        font-size: 0.55em;
-        padding: 4px 4px;
-        min-width: 24px;
-        border-radius: 6px;
-    }
-    .coach-panel .coach-players .player-tag {
-        font-size: 0.4em;
-        padding: 1px 4px;
-    }
-    .coach-panel .coach-players { max-height: 35px; }
-}
-
-@media (max-width: 350px) {
-    .coach-panel .coach-name { font-size: 0.55em; }
-    .coach-panel .coach-budget { font-size: 0.5em; padding: 1px 3px; }
-    .coach-panel .coach-buttons button {
-        font-size: 0.5em;
-        padding: 3px 3px;
-        min-width: 20px;
-        border-radius: 5px;
-    }
-    .coach-panel .coach-players .player-tag {
-        font-size: 0.35em;
-        padding: 1px 3px;
-    }
-    .coach-panel .coach-players { max-height: 30px; }
-}
-
-/* ===== باقي التنسيقات ===== */
+/* ===== تكبير الأزرار ===== */
 .coach-panel .coach-buttons {
     display: flex;
-    gap: 6px;
+    gap: 8px;
     flex-wrap: wrap;
     margin: 6px 0;
     justify-content: flex-start;
@@ -825,17 +751,57 @@ body::before {
 
 .coach-panel .coach-buttons button {
     flex: 1;
+    min-width: 48px;
+    padding: 10px 10px;
     border: none;
-    border-radius: 12px;
+    border-radius: 14px;
     font-weight: 700;
+    font-size: 0.9em;
     cursor: pointer;
     transition: all 0.2s ease;
     color: white;
 }
 
-.coach-panel .coach-buttons button:hover { transform: scale(1.08); }
+.coach-panel .coach-buttons button:hover { transform: scale(1.05); }
 .coach-panel .coach-buttons button:active { transform: scale(0.95); }
 
+/* ===== أحجام الأزرار حسب الجهاز ===== */
+@media (max-width: 768px) {
+    .coach-panel .coach-buttons button {
+        font-size: 0.8em;
+        padding: 8px 8px;
+        min-width: 40px;
+    }
+}
+
+@media (max-width: 500px) {
+    .coach-panel .coach-buttons button {
+        font-size: 0.75em;
+        padding: 7px 7px;
+        min-width: 35px;
+        border-radius: 10px;
+    }
+}
+
+@media (max-width: 400px) {
+    .coach-panel .coach-buttons button {
+        font-size: 0.65em;
+        padding: 6px 6px;
+        min-width: 30px;
+        border-radius: 8px;
+    }
+}
+
+@media (max-width: 350px) {
+    .coach-panel .coach-buttons button {
+        font-size: 0.55em;
+        padding: 4px 4px;
+        min-width: 24px;
+        border-radius: 6px;
+    }
+}
+
+/* ===== زر إنهاء ===== */
 .coach-panel .end-btn {
     background: rgba(255, 215, 0, 0.25);
     color: var(--gold);
@@ -850,22 +816,91 @@ body::before {
     opacity: 0.7;
 }
 
+/* ===== قائمة اللاعبين مع شريط تمرير ===== */
 .coach-panel .coach-players {
     display: flex;
     flex-wrap: wrap;
     gap: 4px;
     margin-top: 6px;
+    max-height: 80px;
     overflow-y: auto;
     justify-content: flex-start;
     width: 100%;
+    padding: 4px 2px;
+    direction: rtl;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 215, 0, 0.3) transparent;
 }
 
+/* ===== تخصيص شريط التمرير ===== */
+.coach-panel .coach-players::-webkit-scrollbar {
+    width: 4px;
+}
+
+.coach-panel .coach-players::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+}
+
+.coach-panel .coach-players::-webkit-scrollbar-thumb {
+    background: var(--gold);
+    border-radius: 4px;
+}
+
+/* ===== أحجام قائمة اللاعبين حسب الجهاز ===== */
+@media (max-width: 768px) {
+    .coach-panel .coach-players {
+        max-height: 65px;
+    }
+}
+
+@media (max-width: 500px) {
+    .coach-panel .coach-players {
+        max-height: 55px;
+    }
+}
+
+@media (max-width: 400px) {
+    .coach-panel .coach-players {
+        max-height: 45px;
+    }
+}
+
+@media (max-width: 350px) {
+    .coach-panel .coach-players {
+        max-height: 38px;
+    }
+}
+
+/* ===== أسماء اللاعبين داخل القائمة ===== */
 .coach-panel .coach-players .player-tag {
     background: rgba(255,255,255,0.06);
     padding: 2px 8px;
     border-radius: 12px;
+    font-size: 0.6em;
     border: 1px solid rgba(255,255,255,0.05);
     white-space: nowrap;
+}
+
+@media (max-width: 500px) {
+    .coach-panel .coach-players .player-tag {
+        font-size: 0.55em;
+        padding: 1px 6px;
+    }
+}
+
+@media (max-width: 400px) {
+    .coach-panel .coach-players .player-tag {
+        font-size: 0.5em;
+        padding: 1px 5px;
+    }
+}
+
+@media (max-width: 350px) {
+    .coach-panel .coach-players .player-tag {
+        font-size: 0.45em;
+        padding: 1px 4px;
+    }
 }
 
 .coach-panel.active-panel {
@@ -1054,7 +1089,7 @@ body::before {
 }
 
 /* ============================================
-   استجابة للشاشات المتوسطة والصغيرة (تابلت وفون)
+   استجابة للشاشات المتوسطة والصغيرة
 ============================================ */
 @media (max-width: 992px) {
     .setup-grid { grid-template-columns: 1fr; gap: 10px; }
