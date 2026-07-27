@@ -608,7 +608,7 @@ body::before {
 .btn-primary:hover { transform: scale(1.05); }
 
 /* ============================================
-   لوحات المدربين - تكبير المربعات + شريط تمرير
+   لوحات المدربين
 ============================================ */
 .coach-panels {
     position: fixed;
@@ -633,15 +633,10 @@ body::before {
     display: flex;
     flex-direction: column;
     gap: 8px;
-}
-
-/* ===== تكبير المربعات ===== */
-.coach-panel {
     width: 220px;
     max-width: 50vw;
 }
 
-/* التليفونات */
 @media (max-width: 768px) {
     .coach-panel {
         width: 190px;
@@ -674,7 +669,6 @@ body::before {
     }
 }
 
-/* ===== الزوايا ===== */
 .coach-panel[data-index="0"] { bottom: 20px; right: 20px; }
 .coach-panel[data-index="1"] { top: 80px; right: 20px; }
 .coach-panel[data-index="2"] { bottom: 20px; left: 20px; }
@@ -687,7 +681,6 @@ body::before {
     .coach-panel[data-index="3"] { top: 70px; left: 12px; }
 }
 
-/* ===== الزوايا العلوية (مقلوبة) ===== */
 .coach-panel[data-index="1"],
 .coach-panel[data-index="3"] {
     transform: rotate(180deg);
@@ -705,7 +698,6 @@ body::before {
     transform: rotate(180deg);
 }
 
-/* ===== تنسيق رأس اللوحة ===== */
 .coach-panel .coach-header {
     display: flex;
     justify-content: space-between;
@@ -739,7 +731,6 @@ body::before {
     font-size: 0.95em;
 }
 
-/* ===== تكبير الأزرار ===== */
 .coach-panel .coach-buttons {
     display: flex;
     gap: 8px;
@@ -765,7 +756,6 @@ body::before {
 .coach-panel .coach-buttons button:hover { transform: scale(1.05); }
 .coach-panel .coach-buttons button:active { transform: scale(0.95); }
 
-/* ===== أحجام الأزرار حسب الجهاز ===== */
 @media (max-width: 768px) {
     .coach-panel .coach-buttons button {
         font-size: 0.8em;
@@ -801,7 +791,6 @@ body::before {
     }
 }
 
-/* ===== زر إنهاء ===== */
 .coach-panel .end-btn {
     background: rgba(255, 215, 0, 0.25);
     color: var(--gold);
@@ -816,7 +805,6 @@ body::before {
     opacity: 0.7;
 }
 
-/* ===== قائمة اللاعبين مع شريط تمرير ===== */
 .coach-panel .coach-players {
     display: flex;
     flex-wrap: wrap;
@@ -832,7 +820,6 @@ body::before {
     scrollbar-color: rgba(255, 215, 0, 0.3) transparent;
 }
 
-/* ===== تخصيص شريط التمرير ===== */
 .coach-panel .coach-players::-webkit-scrollbar {
     width: 4px;
 }
@@ -847,7 +834,6 @@ body::before {
     border-radius: 4px;
 }
 
-/* ===== أحجام قائمة اللاعبين حسب الجهاز ===== */
 @media (max-width: 768px) {
     .coach-panel .coach-players {
         max-height: 65px;
@@ -872,7 +858,6 @@ body::before {
     }
 }
 
-/* ===== أسماء اللاعبين داخل القائمة ===== */
 .coach-panel .coach-players .player-tag {
     background: rgba(255,255,255,0.06);
     padding: 2px 8px;
@@ -1089,7 +1074,7 @@ body::before {
 }
 
 /* ============================================
-   استجابة للشاشات المتوسطة والصغيرة
+   استجابة
 ============================================ */
 @media (max-width: 992px) {
     .setup-grid { grid-template-columns: 1fr; gap: 10px; }
