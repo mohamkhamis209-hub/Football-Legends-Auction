@@ -1,4 +1,4 @@
-// script.js - تعديل عرض المستوى (rating) بدل القوة
+// script.js - النسخة النهائية مع إصلاح اختفاء لوحات المدربين
 let gameState = {};
 
 // ===== بدء اللعبة =====
@@ -90,6 +90,7 @@ function updateAuctionUI() {
     const totalPlayers = legends.length;
 
     document.getElementById('roundInfo').textContent = `${round + 1} / ${totalPlayers}`;
+    document.getElementById('myBudget').textContent = gameState.coaches[0]?.budget || 0;
 
     let player = null;
     if (round < legends.length) {
@@ -122,7 +123,7 @@ function getHighestBid() {
     return highest;
 }
 
-// ===== عرض اللاعب - تعديل عرض المستوى (rating) بدل القوة =====
+// ===== عرض اللاعب - تعديل عرض المستوى (rating) =====
 function displayPlayer(player, isLegend) {
     document.getElementById('playerName').textContent = player.name;
     document.getElementById('playerPosition').textContent = player.position;
@@ -130,10 +131,8 @@ function displayPlayer(player, isLegend) {
     document.getElementById('pDefense').textContent = player.defense;
     document.getElementById('pSpeed').textContent = player.speed;
     
-    // عرض المستوى (rating) بدلاً من القوة
     const rating = player.rating || Math.round((player.attack + player.defense + player.speed) / 3);
-    document.getElementById('pPower').textContent = rating;
-    document.getElementById('pPowerLabel').textContent = 'المستوى';
+    document.getElementById('pRating').textContent = rating;
 
     const img = document.getElementById('playerImage');
     if (player.image) {
@@ -152,21 +151,31 @@ function displayPlayer(player, isLegend) {
     }
 }
 
-// ===== إنشاء لوحات المدربين =====
+// ===== إنشاء لوحات المدربين في الزوايا الأربع =====
 function renderCoachPanels() {
     const container = document.getElementById('coachPanels');
+    if (!container) {
+        console.error('❌ coachPanels not found!');
+        return;
+    }
+    
+    // حذف اللوحات القديمة
     const oldPanels = container.querySelectorAll('.coach-panel');
     oldPanels.forEach(el => el.remove());
 
+    const totalCoaches = gameState.coaches.length;
+
     gameState.coaches.forEach((coach, idx) => {
+        // إنشاء اللوحة
         const panel = document.createElement('div');
         panel.className = 'coach-panel';
-        panel.dataset.index = idx;
+        panel.dataset.index = idx; // مهم لتحديد الزاوية
 
         if (gameState.currentBidder === idx) {
             panel.classList.add('active-panel');
         }
 
+        // رأس اللوحة (الاسم والمبلغ)
         const header = document.createElement('div');
         header.className = 'coach-header';
         header.innerHTML = `
@@ -175,6 +184,7 @@ function renderCoachPanels() {
         `;
         panel.appendChild(header);
 
+        // أزرار المزايدة
         const buttonsDiv = document.createElement('div');
         buttonsDiv.className = 'coach-buttons';
 
@@ -192,6 +202,7 @@ function renderCoachPanels() {
             buttonsDiv.appendChild(btn);
         });
 
+        // زر إنهاء
         const endBtn = document.createElement('button');
         endBtn.textContent = coach.hasEnded ? '✅ أنهيت' : '⏹ إنهاء';
         endBtn.className = `end-btn bid-btn-small ${coach.hasEnded ? 'done' : ''}`;
@@ -203,6 +214,7 @@ function renderCoachPanels() {
 
         panel.appendChild(buttonsDiv);
 
+        // قائمة اللاعبين (التشكيلة)
         const playersDiv = document.createElement('div');
         playersDiv.className = 'coach-players';
         if (coach.team.length === 0) {
@@ -288,8 +300,8 @@ function endBid(coachIdx) {
     localStorage.setItem('gameState', JSON.stringify(gameState));
 }
 
-// ===== عرض مربع حوار تغيير اللاعب =====
 function showChangePlayerDialog() {
+    // تعطيل أزرار المزايدة مؤقتاً
     document.querySelector('.coach-panels').style.pointerEvents = 'none';
     
     const dialog = document.createElement('div');
@@ -367,7 +379,6 @@ function cancelChangePlayer() {
     showNotification('🔄 استمرار المزايدة على نفس اللاعب');
 }
 
-// ===== إنهاء المزاد =====
 function endAuction() {
     const round = gameState.round;
     const legends = gameState.remainingLegends;
@@ -383,7 +394,6 @@ function endAuction() {
     const highest = getHighestBid();
     let winnerIdx = null;
 
-    // 1. توزيع الأسطورة على الفائز فقط
     if (highest) {
         winnerIdx = highest.coachIdx;
         const winner = gameState.coaches[winnerIdx];
@@ -402,7 +412,7 @@ function endAuction() {
         winnerIdx = null;
     }
 
-    // 2. توزيع عادي/ضعيف على الخاسرين فقط (ما عدا الفائز)
+    // توزيع عادي/ضعيف على الخاسرين فقط
     const losers = gameState.coaches.filter((c, idx) => idx !== winnerIdx);
     losers.forEach((coach) => {
         if (coach.budget >= 3 && gameState.remainingNormals.length > 0) {
@@ -419,7 +429,6 @@ function endAuction() {
         }
     });
 
-    // إزالة اللاعب الحالي من القائمة
     if (round < gameState.remainingLegends.length) {
         gameState.remainingLegends.splice(round, 1);
     }
@@ -496,6 +505,25 @@ function showNotification(message) {
 
     const toast = document.createElement('div');
     toast.className = 'notification-toast';
+    toast.style.cssText = `
+        position: fixed;
+        bottom: 50%;
+        left: 50%;
+        transform: translate(-50%, 50%);
+        background: rgba(0,0,0,0.9);
+        backdrop-filter: blur(20px);
+        padding: 12px 24px;
+        border-radius: 16px;
+        border: 1px solid var(--gold);
+        color: white;
+        font-size: 0.9em;
+        z-index: 9999;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+        animation: slideUp 0.5s ease-out;
+        max-width: 90%;
+        text-align: center;
+        pointer-events: none;
+    `;
     toast.textContent = message;
     document.body.appendChild(toast);
 
@@ -518,7 +546,6 @@ function showResult() {
     grid.innerHTML = gameState.coaches.map((coach, idx) => {
         let total = 0;
         coach.team.forEach(p => {
-            // استخدام المستوى (rating) بدلاً من حساب القوة
             const power = p.rating || Math.round((p.attack + p.defense + p.speed) / 3);
             total += power;
         });
