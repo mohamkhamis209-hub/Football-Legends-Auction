@@ -72,7 +72,7 @@
                 </button>
             </div>
             <div id="coachNamesContainer">
-                <!-- سيتم إضافة المدربين ديناميكياً - يبدأ فاضي -->
+                <!-- سيتم إضافة المدربين ديناميكياً -->
             </div>
             <div id="coachWarning" style="color:#ff6b6b;font-size:0.8em;margin-top:8px;display:none;">
                 ⚠️ يجب إضافة مدربين على الأقل
@@ -91,8 +91,35 @@
     </div>
 
     <script>
-        // ===== إدارة المدربين (يبدأ فاضي، حد أقصى 4) =====
+        // ===== إدارة المدربين مع حفظ الأسماء في localStorage =====
         let coachNames = [];
+
+        // تحميل الأسماء المحفوظة عند فتح الصفحة
+        function loadSavedCoachNames() {
+            const saved = localStorage.getItem('savedCoachNames');
+            if (saved) {
+                try {
+                    const names = JSON.parse(saved);
+                    if (Array.isArray(names) && names.length > 0) {
+                        coachNames = names;
+                        return true;
+                    }
+                } catch(e) {
+                    console.log('خطأ في استرجاع الأسماء');
+                }
+            }
+            // لو مفيش أسماء محفوظة، نبدأ بمدربين افتراضيين
+            coachNames = ['مدرب 1', 'مدرب 2', 'مدرب 3'];
+            return false;
+        }
+
+        // حفظ الأسماء في localStorage
+        function saveCoachNames() {
+            const names = coachNames.filter(n => n.trim() !== '');
+            if (names.length > 0) {
+                localStorage.setItem('savedCoachNames', JSON.stringify(names));
+            }
+        }
 
         function renderCoachInputs() {
             const container = document.getElementById('coachNamesContainer');
@@ -107,6 +134,7 @@
                 input.placeholder = `المدرب ${index+1}`;
                 input.addEventListener('input', (e) => {
                     coachNames[index] = e.target.value;
+                    saveCoachNames();
                 });
                 
                 const removeBtn = document.createElement('button');
@@ -114,7 +142,12 @@
                 removeBtn.className = 'btn-remove-coach';
                 removeBtn.textContent = '✖';
                 removeBtn.onclick = () => {
+                    if (coachNames.length <= 2) {
+                        alert('يجب أن يكون هناك مدربان على الأقل');
+                        return;
+                    }
                     coachNames.splice(index, 1);
+                    saveCoachNames();
                     renderCoachInputs();
                     updateDisplay();
                 };
@@ -131,7 +164,17 @@
                 alert('⚠️ الحد الأقصى 4 مدربين فقط');
                 return;
             }
-            coachNames.push(`مدرب ${coachNames.length+1}`);
+            // الأسماء الجديدة تبقى "مدرب X"
+            const newIndex = coachNames.length + 1;
+            // نبحث عن اسم مش موجود
+            let newName = `مدرب ${newIndex}`;
+            let counter = newIndex;
+            while (coachNames.includes(newName)) {
+                counter++;
+                newName = `مدرب ${counter}`;
+            }
+            coachNames.push(newName);
+            saveCoachNames();
             renderCoachInputs();
         }
 
@@ -140,7 +183,6 @@
             const form = document.getElementById('formation').value;
             document.getElementById('displayFormation').textContent = form;
             
-            // إظهار/إخفاء التحذير
             const warning = document.getElementById('coachWarning');
             if (coachNames.length < 2) {
                 warning.style.display = 'block';
@@ -156,6 +198,7 @@
                 alert('⚠️ يجب إضافة مدربين على الأقل (2 إلى 4 مدربين)');
                 return;
             }
+            saveCoachNames();
             localStorage.setItem('tempCoachNames', JSON.stringify(names));
             if (typeof window.startGameOriginal === 'function') {
                 window.startGameOriginal();
@@ -183,12 +226,17 @@
             document.getElementById('loadingScreen').classList.add('hidden');
         }, 800);
 
+        // تحميل الأسماء المحفوظة عند بدء الصفحة
+        loadSavedCoachNames();
         renderCoachInputs();
+        
         window.addCoach = addCoach;
         window.renderCoachInputs = renderCoachInputs;
+        window.loadSavedCoachNames = loadSavedCoachNames;
     </script>
 
     <script src="players.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
+
