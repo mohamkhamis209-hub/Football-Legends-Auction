@@ -48,9 +48,9 @@
         <div class="setup-group" style="margin-bottom:10px;">
             <label>🎮 وضع اللعب</label>
             <select id="gameMode" onchange="toggleGameMode()">
-                <option value="local"> مع الاصدقاء </option>
-                <option value="ai">ضد الكمبيوتر </option>
-                <option value="online">🎮 أونلاين </option>
+                <option value="local">محلي (2-4 لاعبين)</option>
+                <option value="ai">ضد الكمبيوتر (AI)</option>
+                <option value="online">🎮 أونلاين (محاكي)</option>
             </select>
         </div>
 
@@ -118,6 +118,7 @@
                 addBtn.style.display = 'none';
                 onlineInfo.style.display = 'block';
                 
+                // في وضع أونلاين: المدرب الأول فقط قابل للتغيير
                 const playerName = coachNames.length > 0 ? coachNames[0] : 'أنت';
                 coachNames = [
                     playerName,
@@ -186,11 +187,27 @@
                 input.value = name;
                 input.placeholder = `المدرب ${index+1}`;
                 
+                // في وضع أونلاين: المدرب الأول فقط قابل للتعديل
                 if (isOnline) {
-                    input.disabled = true;
-                    input.style.opacity = '0.7';
-                    input.style.cursor = 'default';
+                    if (index === 0) {
+                        // المدرب الأول (اللاعب) - قابل للتعديل
+                        input.disabled = false;
+                        input.style.opacity = '1';
+                        input.style.cursor = 'text';
+                        input.addEventListener('input', (e) => {
+                            coachNames[0] = e.target.value;
+                            saveCoachNames();
+                        });
+                    } else {
+                        // باقي المدربين (كمبيوتر) - مقفولين
+                        input.disabled = true;
+                        input.style.opacity = '0.7';
+                        input.style.cursor = 'default';
+                    }
                 } else {
+                    input.disabled = false;
+                    input.style.opacity = '1';
+                    input.style.cursor = 'text';
                     input.addEventListener('input', (e) => {
                         coachNames[index] = e.target.value;
                         saveCoachNames();
@@ -274,8 +291,9 @@
                 return;
             }
             
-            if (mode === 'online' && names.length < 4) {
-                const playerName = names.length > 0 ? names[0] : 'أنت';
+            if (mode === 'online') {
+                // التأكد من وجود اسم للاعب
+                const playerName = names.length > 0 && names[0].trim() !== '' ? names[0] : 'أنت';
                 coachNames = [
                     playerName,
                     'كمبيوتر (سهل) 🤖',
