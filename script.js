@@ -1,4 +1,4 @@
-// script.js - النسخة النهائية
+// script.js - إصلاح سلوك الكمبيوتر
 let gameState = {};
 let aiTimer = null;
 
@@ -7,7 +7,6 @@ function startGameOriginal() {
     let names = JSON.parse(localStorage.getItem('tempCoachNames') || '[]');
     const mode = localStorage.getItem('gameMode') || 'local';
     
-    // ===== وضع أونلاين: ضبط المدربين تلقائياً =====
     if (mode === 'online') {
         if (names.length < 4) {
             const playerName = names.length > 0 ? names[0] : 'أنت';
@@ -345,7 +344,7 @@ function placeBid(coachIdx, amount) {
     }
 }
 
-// ===== إنهاء المزايدة =====
+// ===== إنهاء المزايدة (لللاعب) =====
 function endBid(coachIdx) {
     const coach = gameState.coaches[coachIdx];
     if (coach.hasEnded) {
@@ -358,12 +357,23 @@ function endBid(coachIdx) {
         aiTimer = null;
     }
 
+    // اللاعب ينهي
     coach.hasEnded = true;
     gameState.endCount = (gameState.endCount || 0) + 1;
 
+    // ===== إجبار الكمبيوتر على إنهاء المزايدة فوراً =====
+    gameState.coaches.forEach((c) => {
+        if (c.isAI && !c.hasEnded) {
+            c.hasEnded = true;
+            gameState.endCount = (gameState.endCount || 0) + 1;
+        }
+    });
+
     renderCoachPanels();
 
-    if (gameState.endCount >= gameState.coaches.length) {
+    // التحقق من أن جميع المدربين أنهوا
+    const allEnded = gameState.coaches.every(c => c.hasEnded === true);
+    if (allEnded) {
         gameState.allEnded = true;
         const highest = getHighestBid();
         if (highest) {
@@ -377,6 +387,29 @@ function endBid(coachIdx) {
     localStorage.setItem('gameState', JSON.stringify(gameState));
 
     if (gameState.isAIMode) {
+        // لو لسه في مدربين كمبيوتر لم ينهوا، ننهيهم فوراً
+        const remainingAI = gameState.coaches.filter(c => c.isAI && !c.hasEnded);
+        if (remainingAI.length > 0) {
+            remainingAI.forEach(c => {
+                c.hasEnded = true;
+                gameState.endCount = (gameState.endCount || 0) + 1;
+            });
+            renderCoachPanels();
+            localStorage.setItem('gameState', JSON.stringify(gameState));
+            
+            // بعد إنهاء الكل، ننهي المزاد
+            const allEndedNow = gameState.coaches.every(c => c.hasEnded === true);
+            if (allEndedNow) {
+                gameState.allEnded = true;
+                const highest = getHighestBid();
+                if (highest) {
+                    endAuction();
+                } else {
+                    showChangePlayerDialog();
+                }
+                return;
+            }
+        }
         processAI();
     }
 }
@@ -394,7 +427,20 @@ function processAI() {
     if (!player) return;
 
     const aiCoaches = gameState.coaches.filter(c => c.isAI && !c.hasEnded);
-    if (aiCoaches.length === 0) return;
+    if (aiCoaches.length === 0) {
+        // لو كل الكمبيوتر أنهى، نتحقق من إنهاء المزاد
+        const allEnded = gameState.coaches.every(c => c.hasEnded === true);
+        if (allEnded) {
+            gameState.allEnded = true;
+            const highest = getHighestBid();
+            if (highest) {
+                endAuction();
+            } else {
+                showChangePlayerDialog();
+            }
+        }
+        return;
+    }
 
     gameState.isAIProcessing = true;
 
@@ -411,6 +457,7 @@ function processAI() {
         const highest = getHighestBid();
         const currentPrice = highest ? highest.amount : 5;
 
+        // لكل مدرب كمبيوتر لم ينهي بعد
         for (let coach of aiCoaches) {
             if (coach.hasEnded) continue;
             if (gameState.allEnded) break;
@@ -442,6 +489,7 @@ function processAI() {
 
                     localStorage.setItem('gameState', JSON.stringify(gameState));
                     
+                    // الكمبيوتر يزايد تاني بعد تأخير بسيط
                     setTimeout(() => {
                         if (!gameState.allEnded && !gameState.isGameOver) {
                             processAI();
@@ -450,12 +498,15 @@ function processAI() {
                     return;
                 }
             } else if (decision.action === 'end') {
+                // الكمبيوتر ينهي
                 coach.hasEnded = true;
                 gameState.endCount = (gameState.endCount || 0) + 1;
                 renderCoachPanels();
                 localStorage.setItem('gameState', JSON.stringify(gameState));
 
-                if (gameState.endCount >= gameState.coaches.length) {
+                // التحقق من إنهاء الكل
+                const allEnded = gameState.coaches.every(c => c.hasEnded === true);
+                if (allEnded) {
                     gameState.allEnded = true;
                     const highestBid = getHighestBid();
                     if (highestBid) {
@@ -468,9 +519,32 @@ function processAI() {
             }
         }
 
+        // لو لسه في مدربين كمبيوتر لم ينهوا، نكرر العملية
         const remainingAI = gameState.coaches.filter(c => c.isAI && !c.hasEnded);
         if (remainingAI.length > 0 && !gameState.allEnded && !gameState.isGameOver) {
-            setTimeout(() => processAI(), 500);
+            // ننهي كل الكمبيوتر المتبقي تلقائياً إذا مر وقت طويل
+            if (gameState.endCount > 0) {
+                // لو اللاعب أنهى، الكمبيوتر ينهي فوراً
+                remainingAI.forEach(c => {
+                    c.hasEnded = true;
+                    gameState.endCount = (gameState.endCount || 0) + 1;
+                });
+                renderCoachPanels();
+                localStorage.setItem('gameState', JSON.stringify(gameState));
+                
+                const allEndedNow = gameState.coaches.every(c => c.hasEnded === true);
+                if (allEndedNow) {
+                    gameState.allEnded = true;
+                    const highestBid = getHighestBid();
+                    if (highestBid) {
+                        endAuction();
+                    } else {
+                        showChangePlayerDialog();
+                    }
+                }
+            } else {
+                setTimeout(() => processAI(), 500);
+            }
         }
 
     }, delay);
