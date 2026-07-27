@@ -431,7 +431,7 @@ body::before {
 }
 
 /* ============================================
-   شاشة المزاد (الزوايا) - إصلاح الكتابة العكسية
+   شاشة المزاد (الزوايا) - إصلاح الكتابة
 ============================================ */
 #topBar {
     position: fixed;
@@ -562,148 +562,6 @@ body::before {
 }
 
 /* ============================================
-   لوحات المدربين (الزوايا الأربعة)
-============================================ */
-.coach-panels {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 20;
-}
-
-.coach-panel {
-    position: fixed;
-    pointer-events: auto;
-    background: rgba(10, 14, 26, 0.92);
-    backdrop-filter: blur(16px);
-    border: 1px solid var(--glass-border);
-    border-radius: 20px;
-    padding: 12px 14px;
-    width: 190px;
-    max-width: 46vw;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.7);
-    transition: var(--transition);
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    /* إصلاح اتجاه النص */
-    direction: ltr !important;
-    text-align: left !important;
-}
-
-/* إصلاح النصوص العربية داخل اللوحة */
-.coach-panel * {
-    direction: rtl !important;
-    text-align: right !important;
-}
-
-/* استثناء الأرقام والمبالغ */
-.coach-panel .coach-budget,
-.coach-panel .bid-btn-small {
-    direction: ltr !important;
-    text-align: center !important;
-}
-
-/* ترتيب الزوايا حسب data-index */
-.coach-panel[data-index="0"] { bottom: 20px; right: 20px; }  /* أسفل يمين */
-.coach-panel[data-index="1"] { top: 80px; right: 20px; }    /* أعلى يمين */
-.coach-panel[data-index="2"] { bottom: 20px; left: 20px; }  /* أسفل يسار */
-.coach-panel[data-index="3"] { top: 80px; left: 20px; }     /* أعلى يسار */
-
-.coach-panel .coach-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.85em;
-    width: 100%;
-}
-
-.coach-panel .coach-name { 
-    font-weight: 700; 
-    font-size: 1em; 
-    white-space: nowrap; 
-    overflow: hidden; 
-    text-overflow: ellipsis; 
-    flex: 1;
-}
-
-.coach-panel .coach-budget { 
-    color: var(--gold); 
-    font-weight: 700; 
-    font-size: 0.9em; 
-    margin-right: 5px;
-    flex-shrink: 0;
-}
-
-.coach-panel .coach-buttons {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-    margin: 6px 0;
-    justify-content: flex-start;
-    width: 100%;
-}
-
-.coach-panel .coach-buttons button {
-    flex: 1;
-    min-width: 40px;
-    padding: 8px 8px;
-    border: none;
-    border-radius: 12px;
-    font-weight: 700;
-    font-size: 0.8em;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    color: white;
-}
-
-.coach-panel .coach-buttons button:hover { transform: scale(1.08); }
-.coach-panel .coach-buttons button:active { transform: scale(0.95); }
-
-.coach-panel .end-btn {
-    background: rgba(255, 215, 0, 0.25);
-    color: var(--gold);
-    border: 1px solid rgba(255, 215, 0, 0.3);
-}
-.coach-panel .end-btn:hover { background: rgba(255, 215, 0, 0.35); }
-.coach-panel .end-btn.done {
-    background: rgba(46, 204, 113, 0.25);
-    color: #2ecc71;
-    border-color: rgba(46, 204, 113, 0.3);
-    cursor: default;
-    opacity: 0.7;
-}
-
-.coach-panel .coach-players {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-    margin-top: 6px;
-    max-height: 70px;
-    overflow-y: auto;
-    justify-content: flex-start;
-    width: 100%;
-}
-
-.coach-panel .coach-players .player-tag {
-    background: rgba(255,255,255,0.06);
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 0.6em;
-    border: 1px solid rgba(255,255,255,0.05);
-    white-space: nowrap;
-}
-
-.coach-panel.active-panel {
-    border-color: var(--gold);
-    box-shadow: 0 0 40px rgba(255, 215, 0, 0.15);
-    background: rgba(255, 215, 0, 0.08);
-}
-
-/* ============================================
    أزرار المنتصف
 ============================================ */
 .center-actions {
@@ -738,6 +596,144 @@ body::before {
 .btn-gold-outline:hover { background: var(--gold-gradient); color: #0a0e1a; border-color: transparent; }
 .btn-primary { background: var(--gold-gradient); color: #0a0e1a; box-shadow: 0 4px 20px rgba(255,215,0,0.3); }
 .btn-primary:hover { transform: scale(1.05); }
+
+/* ============================================
+   لوحات المدربين (الزوايا الأربعة) - إصلاح الكتابة
+============================================ */
+.coach-panels {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 20;
+}
+
+.coach-panel {
+    position: fixed;
+    pointer-events: auto;
+    background: rgba(10, 14, 26, 0.92);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 12px 14px;
+    width: 190px;
+    max-width: 46vw;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.7);
+    transition: var(--transition);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    direction: rtl;
+    text-align: right;
+}
+
+/* ترتيب الزوايا حسب data-index */
+.coach-panel[data-index="0"] { bottom: 20px; right: 20px; }  /* أسفل يمين */
+.coach-panel[data-index="1"] { top: 80px; right: 20px; }    /* أعلى يمين */
+.coach-panel[data-index="2"] { bottom: 20px; left: 20px; }  /* أسفل يسار */
+.coach-panel[data-index="3"] { top: 80px; left: 20px; }     /* أعلى يسار */
+
+/* ===== تنسيق محتويات اللوحة ===== */
+.coach-panel .coach-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85em;
+    width: 100%;
+    direction: rtl;
+}
+
+.coach-panel .coach-name { 
+    font-weight: 700; 
+    font-size: 1em; 
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    flex: 1;
+    direction: rtl;
+    text-align: right;
+}
+
+.coach-panel .coach-budget { 
+    color: var(--gold); 
+    font-weight: 700; 
+    font-size: 0.9em; 
+    margin-right: 5px;
+    flex-shrink: 0;
+    direction: ltr;
+    text-align: left;
+}
+
+.coach-panel .coach-buttons {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin: 6px 0;
+    justify-content: flex-start;
+    width: 100%;
+    direction: rtl;
+}
+
+.coach-panel .coach-buttons button {
+    flex: 1;
+    min-width: 40px;
+    padding: 8px 8px;
+    border: none;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.8em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: white;
+    direction: ltr;
+}
+
+.coach-panel .coach-buttons button:hover { transform: scale(1.08); }
+.coach-panel .coach-buttons button:active { transform: scale(0.95); }
+
+.coach-panel .end-btn {
+    background: rgba(255, 215, 0, 0.25);
+    color: var(--gold);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+}
+.coach-panel .end-btn:hover { background: rgba(255, 215, 0, 0.35); }
+.coach-panel .end-btn.done {
+    background: rgba(46, 204, 113, 0.25);
+    color: #2ecc71;
+    border-color: rgba(46, 204, 113, 0.3);
+    cursor: default;
+    opacity: 0.7;
+}
+
+.coach-panel .coach-players {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 6px;
+    max-height: 70px;
+    overflow-y: auto;
+    justify-content: flex-start;
+    width: 100%;
+    direction: rtl;
+}
+
+.coach-panel .coach-players .player-tag {
+    background: rgba(255,255,255,0.06);
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.6em;
+    border: 1px solid rgba(255,255,255,0.05);
+    white-space: nowrap;
+    direction: rtl;
+}
+
+.coach-panel.active-panel {
+    border-color: var(--gold);
+    box-shadow: 0 0 40px rgba(255, 215, 0, 0.15);
+    background: rgba(255, 215, 0, 0.08);
+}
 
 /* ============================================
    شاشة النتيجة
@@ -962,4 +958,3 @@ body::before {
     .coach-panel[data-index="2"] { bottom: 12px; left: 12px; }
     .coach-panel[data-index="3"] { top: 70px; left: 12px; }
 }
-
