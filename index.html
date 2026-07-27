@@ -46,20 +46,11 @@
 
         <!-- وضع اللعب -->
         <div class="setup-group" style="margin-bottom:10px;">
-            <labe>🎮 وضع اللعب</label>
-            <select id="gameMode" onchange="toggleAIMode()">
-                <option value="local">مع الاصدقاء </option>
-                <option value="ai" selected>ضد الكمبيوتر </option>
-            </select>
-        </div>
-
-        <!-- مستوى صعوبة الكمبيوتر (يظهر في وضع AI) -->
-        <div class="setup-group" id="aiDifficultyGroup" style="margin-bottom:10px;">
-            <label>🤖 مستوى صعوبة الكمبيوتر</label>
-            <select id="aiDifficulty">
-                <option value="easy">سهل</option>
-                <option value="medium" selected>متوسط</option>
-                <option value="hard">صعب</option>
+            <label>🎮 وضع اللعب</label>
+            <select id="gameMode" onchange="toggleGameMode()">
+                <option value="local"> مع الاصدقاء </option>
+                <option value="ai">ضد الكمبيوتر </option>
+                <option value="online">🎮 أونلاين </option>
             </select>
         </div>
 
@@ -85,8 +76,8 @@
         <!-- المدربين -->
         <div class="coaches-section">
             <div class="coaches-header">
-                <label>✏️ أسماء المدربين (حد أقصى 4)</label>
-                <button type="button" class="btn-add-coach" onclick="addCoach()">
+                <label>✏️ أسماء المدربين</label>
+                <button type="button" class="btn-add-coach" id="addCoachBtn" onclick="addCoach()">
                     <span>➕</span> إضافة مدرب
                 </button>
             </div>
@@ -95,6 +86,10 @@
             </div>
             <div id="coachWarning" style="color:#ff6b6b;font-size:0.8em;margin-top:8px;display:none;">
                 ⚠️ يجب إضافة مدربين على الأقل
+            </div>
+            <div id="onlineInfo" style="color:#00cec9;font-size:0.8em;margin-top:8px;display:none;background:rgba(0,206,201,0.08);padding:8px 12px;border-radius:10px;border:1px solid rgba(0,206,201,0.2);">
+                🌐 وضع أونلاين محاكي: أنت + 3 مدربين كمبيوتر بمستويات صعوبة مختلفة<br>
+                <span style="font-size:0.8em;color:#888;">🟢 سهل | 🟡 متوسط | 🔴 صعب</span>
             </div>
         </div>
 
@@ -113,22 +108,44 @@
         // ===== إدارة المدربين =====
         let coachNames = [];
 
-        function toggleAIMode() {
+        function toggleGameMode() {
             const mode = document.getElementById('gameMode').value;
-            const difficultyGroup = document.getElementById('aiDifficultyGroup');
-            if (mode === 'ai') {
-                difficultyGroup.style.display = 'block';
-                // في وضع AI، لازم يكون في مدربين (اللاعب + الكمبيوتر)
-                if (coachNames.length < 2) {
-                    // لو مفيش مدربين كافيين، نضيف مدربين افتراضيين
+            const addBtn = document.getElementById('addCoachBtn');
+            const onlineInfo = document.getElementById('onlineInfo');
+            const warning = document.getElementById('coachWarning');
+            
+            if (mode === 'online') {
+                addBtn.style.display = 'none';
+                onlineInfo.style.display = 'block';
+                
+                const playerName = coachNames.length > 0 ? coachNames[0] : 'أنت';
+                coachNames = [
+                    playerName,
+                    'كمبيوتر (سهل) 🤖',
+                    'كمبيوتر (متوسط) 🤖',
+                    'كمبيوتر (صعب) 🤖'
+                ];
+                renderCoachInputs();
+                warning.style.display = 'none';
+            } else {
+                addBtn.style.display = 'inline-block';
+                onlineInfo.style.display = 'none';
+                
+                if (mode === 'ai') {
                     while (coachNames.length < 2) {
                         coachNames.push(`مدرب ${coachNames.length+1}`);
                     }
-                    renderCoachInputs();
+                    if (coachNames.length > 2) {
+                        coachNames = coachNames.slice(0, 2);
+                    }
+                } else {
+                    if (coachNames.length < 2) {
+                        coachNames = ['مدرب 1', 'مدرب 2', 'مدرب 3'];
+                    }
                 }
-            } else {
-                difficultyGroup.style.display = 'none';
+                renderCoachInputs();
             }
+            updateDisplay();
         }
 
         function loadSavedCoachNames() {
@@ -142,8 +159,7 @@
                     }
                 } catch(e) {}
             }
-            // لو مفيش أسماء محفوظة، نبدأ بمدربين افتراضيين
-            coachNames = ['مدرب 1', 'مدرب 2'];
+            coachNames = ['مدرب 1', 'مدرب 2', 'مدرب 3'];
             return false;
         }
 
@@ -157,6 +173,10 @@
         function renderCoachInputs() {
             const container = document.getElementById('coachNamesContainer');
             container.innerHTML = '';
+            const mode = document.getElementById('gameMode').value;
+            const isOnline = mode === 'online';
+            const isAI = mode === 'ai';
+            
             coachNames.forEach((name, index) => {
                 const div = document.createElement('div');
                 div.className = 'coach-input-row';
@@ -165,25 +185,36 @@
                 input.type = 'text';
                 input.value = name;
                 input.placeholder = `المدرب ${index+1}`;
-                input.addEventListener('input', (e) => {
-                    coachNames[index] = e.target.value;
-                    saveCoachNames();
-                });
+                
+                if (isOnline) {
+                    input.disabled = true;
+                    input.style.opacity = '0.7';
+                    input.style.cursor = 'default';
+                } else {
+                    input.addEventListener('input', (e) => {
+                        coachNames[index] = e.target.value;
+                        saveCoachNames();
+                    });
+                }
                 
                 const removeBtn = document.createElement('button');
                 removeBtn.type = 'button';
                 removeBtn.className = 'btn-remove-coach';
                 removeBtn.textContent = '✖';
-                removeBtn.onclick = () => {
-                    if (coachNames.length <= 2) {
-                        alert('يجب أن يكون هناك مدربان على الأقل');
-                        return;
-                    }
-                    coachNames.splice(index, 1);
-                    saveCoachNames();
-                    renderCoachInputs();
-                    updateDisplay();
-                };
+                if (isOnline || isAI) {
+                    removeBtn.style.display = 'none';
+                } else {
+                    removeBtn.onclick = () => {
+                        if (coachNames.length <= 2) {
+                            alert('يجب أن يكون هناك مدربان على الأقل');
+                            return;
+                        }
+                        coachNames.splice(index, 1);
+                        saveCoachNames();
+                        renderCoachInputs();
+                        updateDisplay();
+                    };
+                }
                 
                 div.appendChild(input);
                 div.appendChild(removeBtn);
@@ -194,10 +225,10 @@
 
         function addCoach() {
             const mode = document.getElementById('gameMode').value;
-            const maxCoaches = mode === 'ai' ? 2 : 4; // في وضع AI، حد أقصى 2 (اللاعب + الكمبيوتر)
+            const maxCoaches = mode === 'ai' ? 2 : 4;
             
             if (coachNames.length >= maxCoaches) {
-                alert(`⚠️ في وضع ${mode === 'ai' ? 'ضد الكمبيوتر' : 'المحلي'}، الحد الأقصى ${maxCoaches} مدربين`);
+                alert(`⚠️ الحد الأقصى ${maxCoaches} مدربين`);
                 return;
             }
             
@@ -219,6 +250,13 @@
             document.getElementById('displayFormation').textContent = form;
             
             const warning = document.getElementById('coachWarning');
+            const mode = document.getElementById('gameMode').value;
+            
+            if (mode === 'online') {
+                warning.style.display = 'none';
+                return;
+            }
+            
             if (coachNames.length < 2) {
                 warning.style.display = 'block';
                 warning.textContent = `⚠️ يجب إضافة ${2 - coachNames.length} مدربين على الأقل`;
@@ -229,18 +267,28 @@
 
         window.startGame = function() {
             const mode = document.getElementById('gameMode').value;
-            const names = coachNames.filter(n => n.trim() !== '');
+            let names = coachNames.filter(n => n.trim() !== '');
             
-            if (names.length < 2) {
+            if (mode !== 'online' && names.length < 2) {
                 alert('⚠️ يجب إضافة مدربين على الأقل (2 مدربين)');
                 return;
             }
             
-            // في وضع AI، نأخذ أول مدرب كلاعب والباقي كمبيوتر
+            if (mode === 'online' && names.length < 4) {
+                const playerName = names.length > 0 ? names[0] : 'أنت';
+                coachNames = [
+                    playerName,
+                    'كمبيوتر (سهل) 🤖',
+                    'كمبيوتر (متوسط) 🤖',
+                    'كمبيوتر (صعب) 🤖'
+                ];
+                renderCoachInputs();
+                names = coachNames;
+            }
+            
             saveCoachNames();
             localStorage.setItem('tempCoachNames', JSON.stringify(names));
             localStorage.setItem('gameMode', mode);
-            localStorage.setItem('aiDifficulty', document.getElementById('aiDifficulty').value);
             
             if (typeof window.startGameOriginal === 'function') {
                 window.startGameOriginal();
@@ -270,10 +318,14 @@
 
         loadSavedCoachNames();
         renderCoachInputs();
-        toggleAIMode();
+        
+        const defaultMode = document.getElementById('gameMode').value;
+        if (defaultMode === 'online') {
+            toggleGameMode();
+        }
         
         window.addCoach = addCoach;
-        window.toggleAIMode = toggleAIMode;
+        window.toggleGameMode = toggleGameMode;
         window.renderCoachInputs = renderCoachInputs;
     </script>
 
