@@ -44,6 +44,25 @@
             <p class="main-subtitle">أذكى مدرب يبني أقوى فريق في التاريخ</p>
         </div>
 
+        <!-- وضع اللعب -->
+        <div class="setup-group" style="margin-bottom:10px;">
+            <labe>🎮 وضع اللعب</label>
+            <select id="gameMode" onchange="toggleAIMode()">
+                <option value="local">مع الاصدقاء </option>
+                <option value="ai" selected>ضد الكمبيوتر (AI)</option>
+            </select>
+        </div>
+
+        <!-- مستوى صعوبة الكمبيوتر (يظهر في وضع AI) -->
+        <div class="setup-group" id="aiDifficultyGroup" style="margin-bottom:10px;">
+            <label>🤖 مستوى صعوبة الكمبيوتر</label>
+            <select id="aiDifficulty">
+                <option value="easy">سهل</option>
+                <option value="medium" selected>متوسط</option>
+                <option value="hard">صعب</option>
+            </select>
+        </div>
+
         <!-- الإعدادات الأساسية -->
         <div class="setup-grid">
             <div class="setup-group">
@@ -91,10 +110,27 @@
     </div>
 
     <script>
-        // ===== إدارة المدربين مع حفظ الأسماء في localStorage =====
+        // ===== إدارة المدربين =====
         let coachNames = [];
 
-        // تحميل الأسماء المحفوظة عند فتح الصفحة
+        function toggleAIMode() {
+            const mode = document.getElementById('gameMode').value;
+            const difficultyGroup = document.getElementById('aiDifficultyGroup');
+            if (mode === 'ai') {
+                difficultyGroup.style.display = 'block';
+                // في وضع AI، لازم يكون في مدربين (اللاعب + الكمبيوتر)
+                if (coachNames.length < 2) {
+                    // لو مفيش مدربين كافيين، نضيف مدربين افتراضيين
+                    while (coachNames.length < 2) {
+                        coachNames.push(`مدرب ${coachNames.length+1}`);
+                    }
+                    renderCoachInputs();
+                }
+            } else {
+                difficultyGroup.style.display = 'none';
+            }
+        }
+
         function loadSavedCoachNames() {
             const saved = localStorage.getItem('savedCoachNames');
             if (saved) {
@@ -104,16 +140,13 @@
                         coachNames = names;
                         return true;
                     }
-                } catch(e) {
-                    console.log('خطأ في استرجاع الأسماء');
-                }
+                } catch(e) {}
             }
             // لو مفيش أسماء محفوظة، نبدأ بمدربين افتراضيين
-            coachNames = ['مدرب 1', 'مدرب 2', 'مدرب 3'];
+            coachNames = ['مدرب 1', 'مدرب 2'];
             return false;
         }
 
-        // حفظ الأسماء في localStorage
         function saveCoachNames() {
             const names = coachNames.filter(n => n.trim() !== '');
             if (names.length > 0) {
@@ -160,13 +193,15 @@
         }
 
         function addCoach() {
-            if (coachNames.length >= 4) {
-                alert('⚠️ الحد الأقصى 4 مدربين فقط');
+            const mode = document.getElementById('gameMode').value;
+            const maxCoaches = mode === 'ai' ? 2 : 4; // في وضع AI، حد أقصى 2 (اللاعب + الكمبيوتر)
+            
+            if (coachNames.length >= maxCoaches) {
+                alert(`⚠️ في وضع ${mode === 'ai' ? 'ضد الكمبيوتر' : 'المحلي'}، الحد الأقصى ${maxCoaches} مدربين`);
                 return;
             }
-            // الأسماء الجديدة تبقى "مدرب X"
+            
             const newIndex = coachNames.length + 1;
-            // نبحث عن اسم مش موجود
             let newName = `مدرب ${newIndex}`;
             let counter = newIndex;
             while (coachNames.includes(newName)) {
@@ -193,13 +228,20 @@
         }
 
         window.startGame = function() {
+            const mode = document.getElementById('gameMode').value;
             const names = coachNames.filter(n => n.trim() !== '');
+            
             if (names.length < 2) {
-                alert('⚠️ يجب إضافة مدربين على الأقل (2 إلى 4 مدربين)');
+                alert('⚠️ يجب إضافة مدربين على الأقل (2 مدربين)');
                 return;
             }
+            
+            // في وضع AI، نأخذ أول مدرب كلاعب والباقي كمبيوتر
             saveCoachNames();
             localStorage.setItem('tempCoachNames', JSON.stringify(names));
+            localStorage.setItem('gameMode', mode);
+            localStorage.setItem('aiDifficulty', document.getElementById('aiDifficulty').value);
+            
             if (typeof window.startGameOriginal === 'function') {
                 window.startGameOriginal();
             } else {
@@ -226,13 +268,13 @@
             document.getElementById('loadingScreen').classList.add('hidden');
         }, 800);
 
-        // تحميل الأسماء المحفوظة عند بدء الصفحة
         loadSavedCoachNames();
         renderCoachInputs();
+        toggleAIMode();
         
         window.addCoach = addCoach;
+        window.toggleAIMode = toggleAIMode;
         window.renderCoachInputs = renderCoachInputs;
-        window.loadSavedCoachNames = loadSavedCoachNames;
     </script>
 
     <script src="players.js"></script>
