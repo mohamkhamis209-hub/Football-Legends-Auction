@@ -12,9 +12,9 @@ function startGameOriginal() {
             const playerName = names.length > 0 ? names[0] : 'أنت';
             names = [
                 playerName,
-                'كمبيوتر (سهل) 🤖',
-                'كمبيوتر (متوسط) 🤖',
-                'كمبيوتر (صعب) 🤖'
+                'مدرب 1',
+                'مدرب 2',
+                'مدرب 3'
             ];
         }
         localStorage.setItem('tempCoachNames', JSON.stringify(names));
