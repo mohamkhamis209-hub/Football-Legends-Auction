@@ -25,10 +25,8 @@ html, body {
     background: var(--dark-bg);
     color: var(--text-primary);
     min-height: 100vh;
-    overflow: hidden;
-    height: 100vh;
-    width: 100vw;
-    user-select: none;
+    overflow: auto !important;
+    height: auto !important;
 }
 
 body::before {
@@ -44,23 +42,6 @@ body::before {
         radial-gradient(ellipse at 80% 20%, rgba(255, 215, 0, 0.04) 0%, transparent 50%),
         radial-gradient(ellipse at 50% 80%, rgba(255, 215, 0, 0.02) 0%, transparent 40%),
         #080c1a;
-}
-
-.bg-glow {
-    position: fixed;
-    top: -30%;
-    left: -30%;
-    width: 160%;
-    height: 160%;
-    background: radial-gradient(circle at 30% 40%, rgba(255, 215, 0, 0.03), transparent 70%);
-    z-index: -1;
-    animation: glowPulse 12s ease-in-out infinite alternate;
-    pointer-events: none;
-}
-
-@keyframes glowPulse {
-    0% { transform: scale(1) rotate(0deg); opacity: 0.3; }
-    100% { transform: scale(1.1) rotate(10deg); opacity: 0.8; }
 }
 
 .stars {
@@ -148,7 +129,7 @@ body::before {
 }
 
 /* ============================================
-   شاشة الإعدادات (setup)
+   شاشة الإعدادات
 ============================================ */
 .setup-container {
     max-width: 520px;
@@ -159,6 +140,7 @@ body::before {
     flex-direction: column;
     gap: 18px;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .top-bar {
@@ -449,9 +431,8 @@ body::before {
 }
 
 /* ============================================
-   شاشة المزاد (الزوايا)
+   شاشة المزاد (الزوايا) - إصلاح الكتابة العكسية
 ============================================ */
-/* الشريط العلوي في المزاد */
 #topBar {
     position: fixed;
     top: 12px;
@@ -471,7 +452,6 @@ body::before {
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
 }
 
-/* بطاقة اللاعب في النص */
 .player-card-3d {
     position: fixed;
     top: 50%;
@@ -581,40 +561,6 @@ body::before {
     font-weight: 700;
 }
 
-/* أزرار المنتصف */
-.center-actions {
-    position: fixed;
-    bottom: 50%;
-    left: 50%;
-    transform: translate(-50%, calc(50% + 150px));
-    z-index: 15;
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    justify-content: center;
-}
-
-.btn {
-    padding: 8px 18px;
-    border: none;
-    border-radius: 40px;
-    font-size: 0.75em;
-    font-weight: 700;
-    font-family: 'Tajawal', sans-serif;
-    cursor: pointer;
-    transition: var(--transition);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-}
-.btn-sm { padding: 5px 14px; font-size: 0.65em; }
-.btn-success { background: linear-gradient(135deg, #00b894, #00cec9); color: white; box-shadow: 0 4px 20px rgba(0,206,201,0.3); }
-.btn-success:hover { transform: scale(1.05); }
-.btn-gold-outline { background: transparent; color: var(--gold); border: 2px solid var(--gold); }
-.btn-gold-outline:hover { background: var(--gold-gradient); color: #0a0e1a; border-color: transparent; }
-.btn-primary { background: var(--gold-gradient); color: #0a0e1a; box-shadow: 0 4px 20px rgba(255,215,0,0.3); }
-.btn-primary:hover { transform: scale(1.05); }
-
 /* ============================================
    لوحات المدربين (الزوايا الأربعة)
 ============================================ */
@@ -643,8 +589,22 @@ body::before {
     display: flex;
     flex-direction: column;
     gap: 6px;
-    direction: rtl;
-    text-align: right;
+    /* إصلاح اتجاه النص */
+    direction: ltr !important;
+    text-align: left !important;
+}
+
+/* إصلاح النصوص العربية داخل اللوحة */
+.coach-panel * {
+    direction: rtl !important;
+    text-align: right !important;
+}
+
+/* استثناء الأرقام والمبالغ */
+.coach-panel .coach-budget,
+.coach-panel .bid-btn-small {
+    direction: ltr !important;
+    text-align: center !important;
 }
 
 /* ترتيب الزوايا حسب data-index */
@@ -653,7 +613,6 @@ body::before {
 .coach-panel[data-index="2"] { bottom: 20px; left: 20px; }  /* أسفل يسار */
 .coach-panel[data-index="3"] { top: 80px; left: 20px; }     /* أعلى يسار */
 
-/* تنسيق محتويات اللوحة */
 .coach-panel .coach-header {
     display: flex;
     justify-content: space-between;
@@ -679,7 +638,6 @@ body::before {
     flex-shrink: 0;
 }
 
-/* الأزرار - تكبير الحجم */
 .coach-panel .coach-buttons {
     display: flex;
     gap: 6px;
@@ -746,6 +704,42 @@ body::before {
 }
 
 /* ============================================
+   أزرار المنتصف
+============================================ */
+.center-actions {
+    position: fixed;
+    bottom: 50%;
+    left: 50%;
+    transform: translate(-50%, calc(50% + 150px));
+    z-index: 15;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.btn {
+    padding: 8px 18px;
+    border: none;
+    border-radius: 40px;
+    font-size: 0.75em;
+    font-weight: 700;
+    font-family: 'Tajawal', sans-serif;
+    cursor: pointer;
+    transition: var(--transition);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+.btn-sm { padding: 5px 14px; font-size: 0.65em; }
+.btn-success { background: linear-gradient(135deg, #00b894, #00cec9); color: white; box-shadow: 0 4px 20px rgba(0,206,201,0.3); }
+.btn-success:hover { transform: scale(1.05); }
+.btn-gold-outline { background: transparent; color: var(--gold); border: 2px solid var(--gold); }
+.btn-gold-outline:hover { background: var(--gold-gradient); color: #0a0e1a; border-color: transparent; }
+.btn-primary { background: var(--gold-gradient); color: #0a0e1a; box-shadow: 0 4px 20px rgba(255,215,0,0.3); }
+.btn-primary:hover { transform: scale(1.05); }
+
+/* ============================================
    شاشة النتيجة
 ============================================ */
 .result-container {
@@ -757,6 +751,7 @@ body::before {
     flex-direction: column;
     gap: 12px;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .result-grid {
@@ -805,6 +800,19 @@ body::before {
     font-weight: 700;
 }
 
+.result-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+.result-actions .btn {
+    padding: 12px 28px;
+    font-size: 0.9em;
+}
+
 .badge {
     display: inline-block;
     padding: 2px 8px;
@@ -826,6 +834,54 @@ body::before {
     background: rgba(255, 0, 0, 0.12);
     border-color: rgba(255, 0, 0, 0.2);
     color: #ff6b6b;
+}
+
+/* ============================================
+   مربع حوار تغيير اللاعب
+============================================ */
+.change-player-dialog {
+    animation: fadeIn 0.3s ease-out;
+}
+
+.change-player-dialog .btn {
+    min-width: 120px;
+}
+
+.change-player-dialog .btn-success {
+    background: linear-gradient(135deg, #00b894, #00cec9);
+    color: white;
+    border: none;
+    border-radius: 40px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(0,206,201,0.3);
+}
+
+.change-player-dialog .btn-success:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 30px rgba(0,206,201,0.5);
+}
+
+.change-player-dialog .btn-gold-outline {
+    background: transparent;
+    color: var(--gold);
+    border: 2px solid var(--gold);
+    border-radius: 40px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.change-player-dialog .btn-gold-outline:hover {
+    background: var(--gold-gradient);
+    color: #0a0e1a;
+    border-color: transparent;
+}
+
+@keyframes fadeIn {
+    0% { opacity: 0; transform: translate(-50%, -60%) scale(0.95); }
+    100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 }
 
 /* ============================================
@@ -905,118 +961,5 @@ body::before {
     .coach-panel[data-index="1"] { top: 70px; right: 12px; }
     .coach-panel[data-index="2"] { bottom: 12px; left: 12px; }
     .coach-panel[data-index="3"] { top: 70px; left: 12px; }
-}
-
-/* إضافة في آخر الملف */
-
-/* ===== أزرار النتيجة ===== */
-.result-actions {
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-    margin-top: 20px;
-    flex-wrap: wrap;
-}
-
-.result-actions .btn {
-    padding: 12px 28px;
-    font-size: 0.9em;
-}
-
-/* ===== تفعيل التمرير ===== */
-.setup-container,
-.result-container {
-    overflow-y: auto;
-    overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
-}
-
-/* إضافة مسافة أسفل للتمرير */
-.result-container {
-    padding-bottom: 40px;
-}
-
-/* ضبط ارتفاع الشاشة للتمرير */
-html, body {
-    overflow: auto !important;
-    height: auto !important;
-    min-height: 100vh;
-}
-/* إزالة overflow:hidden من body عشان التمرير يشتغل */
-body {
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-}
-
-
-/* إضافة في آخر الملف */
-
-/* ===== مربع حوار تغيير اللاعب ===== */
-.change-player-dialog {
-    animation: fadeIn 0.3s ease-out;
-}
-
-.change-player-dialog .btn {
-    min-width: 120px;
-}
-
-.change-player-dialog .btn-success {
-    background: linear-gradient(135deg, #00b894, #00cec9);
-    color: white;
-    border: none;
-    border-radius: 40px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 20px rgba(0,206,201,0.3);
-}
-
-.change-player-dialog .btn-success:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 30px rgba(0,206,201,0.5);
-}
-
-.change-player-dialog .btn-gold-outline {
-    background: transparent;
-    color: var(--gold);
-    border: 2px solid var(--gold);
-    border-radius: 40px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.change-player-dialog .btn-gold-outline:hover {
-    background: var(--gold-gradient);
-    color: #0a0e1a;
-    border-color: transparent;
-}
-
-@keyframes fadeIn {
-    0% { opacity: 0; transform: translate(-50%, -60%) scale(0.95); }
-    100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-}
-
-/* ===== باقي التعديلات ===== */
-.setup-container,
-.result-container {
-    overflow-y: auto;
-    overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
-}
-
-.result-container {
-    padding-bottom: 40px;
-}
-
-html, body {
-    overflow: auto !important;
-    height: auto !important;
-    min-height: 100vh;
-}
-
-body {
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
 }
 
