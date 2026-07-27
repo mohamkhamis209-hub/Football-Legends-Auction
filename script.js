@@ -1,4 +1,4 @@
-// script.js - النسخة النهائية مع تعديلات التوزيع
+// script.js - تعديل عرض المستوى (rating) بدل القوة
 let gameState = {};
 
 // ===== بدء اللعبة =====
@@ -122,14 +122,18 @@ function getHighestBid() {
     return highest;
 }
 
+// ===== عرض اللاعب - تعديل عرض المستوى (rating) بدل القوة =====
 function displayPlayer(player, isLegend) {
     document.getElementById('playerName').textContent = player.name;
     document.getElementById('playerPosition').textContent = player.position;
     document.getElementById('pAttack').textContent = player.attack;
     document.getElementById('pDefense').textContent = player.defense;
     document.getElementById('pSpeed').textContent = player.speed;
-    const power = ((player.attack + player.defense + player.speed) / 3).toFixed(1);
-    document.getElementById('pPower').textContent = power;
+    
+    // عرض المستوى (rating) بدلاً من القوة
+    const rating = player.rating || Math.round((player.attack + player.defense + player.speed) / 3);
+    document.getElementById('pPower').textContent = rating;
+    document.getElementById('pPowerLabel').textContent = 'المستوى';
 
     const img = document.getElementById('playerImage');
     if (player.image) {
@@ -379,7 +383,7 @@ function endAuction() {
     const highest = getHighestBid();
     let winnerIdx = null;
 
-    // ===== 1. توزيع الأسطورة على الفائز فقط =====
+    // 1. توزيع الأسطورة على الفائز فقط
     if (highest) {
         winnerIdx = highest.coachIdx;
         const winner = gameState.coaches[winnerIdx];
@@ -398,23 +402,19 @@ function endAuction() {
         winnerIdx = null;
     }
 
-    // ===== 2. توزيع عادي/ضعيف على الخاسرين فقط (ما عدا الفائز) =====
+    // 2. توزيع عادي/ضعيف على الخاسرين فقط (ما عدا الفائز)
     const losers = gameState.coaches.filter((c, idx) => idx !== winnerIdx);
     losers.forEach((coach) => {
-        // لو معاه فلوس (≥ 3) و فيه عادي متبقي → ياخد عادي بـ 3 مليون
         if (coach.budget >= 3 && gameState.remainingNormals.length > 0) {
             const p = gameState.remainingNormals.shift();
             coach.budget -= 3;
             coach.team.push({ ...p, price: 3, type: 'normal' });
             showNotification(`🟢 ${coach.name} أخذ ${p.name} (عادي) بـ 3 مليون`);
-        }
-        // لو معوش فلوس أو نفذ العادي → ياخد ضعيف جداً مجاناً
-        else if (gameState.remainingVeryWeak.length > 0) {
+        } else if (gameState.remainingVeryWeak.length > 0) {
             const p = gameState.remainingVeryWeak.shift();
             coach.team.push({ ...p, price: 0, type: 'veryWeak' });
             showNotification(`🔴 ${coach.name} أخذ ${p.name} (ضعيف جداً) مجاناً`);
-        }
-        else {
+        } else {
             showNotification(`⚠️ لا يوجد لاعبين لتوزيعهم على ${coach.name}`);
         }
     });
@@ -434,7 +434,6 @@ function endAuction() {
 
     localStorage.setItem('gameState', JSON.stringify(gameState));
 
-    // التحقق من اكتمال التشكيلة
     const allComplete = gameState.coaches.every(coach => coach.team.length >= 11);
     if (allComplete || gameState.remainingLegends.length === 0) {
         gameState.isGameOver = true;
@@ -443,13 +442,11 @@ function endAuction() {
         return;
     }
 
-    // الانتقال التلقائي للاعب التالي
     setTimeout(() => {
         nextPlayerAuto();
     }, 1500);
 }
 
-// ===== توزيع اللاعب تلقائياً (للأسطورة) =====
 function distributePlayerAutomatically(player) {
     const price = 5;
     for (let coach of gameState.coaches) {
@@ -471,7 +468,6 @@ function distributePlayerAutomatically(player) {
     showNotification(`❌ لا يوجد مدرب قادر على شراء ${player.name}`);
 }
 
-// ===== الانتقال التلقائي للاعب التالي =====
 function nextPlayerAuto() {
     gameState.currentBid = 5;
     gameState.currentBidder = null;
@@ -494,7 +490,6 @@ function nextPlayerAuto() {
     showNotification(`🔄 لاعب جديد: ${gameState.remainingLegends[0].name}`);
 }
 
-// ===== باقي الدوال =====
 function showNotification(message) {
     const existing = document.querySelector('.notification-toast');
     if (existing) existing.remove();
@@ -523,7 +518,8 @@ function showResult() {
     grid.innerHTML = gameState.coaches.map((coach, idx) => {
         let total = 0;
         coach.team.forEach(p => {
-            const power = (p.attack + p.defense + p.speed) / 3;
+            // استخدام المستوى (rating) بدلاً من حساب القوة
+            const power = p.rating || Math.round((p.attack + p.defense + p.speed) / 3);
             total += power;
         });
         const avgPower = coach.team.length > 0 ? (total / coach.team.length) : 0;
