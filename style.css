@@ -431,7 +431,7 @@ body::before {
 }
 
 /* ============================================
-   شاشة المزاد (الزوايا) - إصلاح الكتابة
+   شاشة المزاد (الزوايا) - إصلاح الكتابة للزوايا العلوية
 ============================================ */
 #topBar {
     position: fixed;
@@ -625,24 +625,63 @@ body::before {
     display: flex;
     flex-direction: column;
     gap: 6px;
-    direction: rtl;
-    text-align: right;
 }
 
-/* ترتيب الزوايا حسب data-index */
-.coach-panel[data-index="0"] { bottom: 20px; right: 20px; }  /* أسفل يمين */
-.coach-panel[data-index="1"] { top: 80px; right: 20px; }    /* أعلى يمين */
-.coach-panel[data-index="2"] { bottom: 20px; left: 20px; }  /* أسفل يسار */
-.coach-panel[data-index="3"] { top: 80px; left: 20px; }     /* أعلى يسار */
+/* ===== الزوايا السفلية (عادي) ===== */
+.coach-panel[data-index="0"] { 
+    bottom: 20px; 
+    right: 20px;
+    direction: rtl;
+    text-align: right;
+}  /* أسفل يمين */
 
-/* ===== تنسيق محتويات اللوحة ===== */
+.coach-panel[data-index="2"] { 
+    bottom: 20px; 
+    left: 20px;
+    direction: rtl;
+    text-align: right;
+}  /* أسفل يسار */
+
+/* ===== الزوايا العلوية (مقلوبة 180 درجة) ===== */
+.coach-panel[data-index="1"] { 
+    top: 80px; 
+    right: 20px;
+    transform: rotate(180deg);
+    direction: ltr;
+    text-align: left;
+}  /* أعلى يمين */
+
+.coach-panel[data-index="3"] { 
+    top: 80px; 
+    left: 20px;
+    transform: rotate(180deg);
+    direction: ltr;
+    text-align: left;
+}  /* أعلى يسار */
+
+/* ===== إعادة ترتيب المحتويات داخل اللوحات المقلوبة ===== */
+.coach-panel[data-index="1"] .coach-header,
+.coach-panel[data-index="3"] .coach-header {
+    flex-direction: row-reverse;
+}
+
+.coach-panel[data-index="1"] .coach-buttons,
+.coach-panel[data-index="3"] .coach-buttons {
+    flex-direction: row-reverse;
+}
+
+.coach-panel[data-index="1"] .coach-players,
+.coach-panel[data-index="3"] .coach-players {
+    flex-direction: row-reverse;
+}
+
+/* ===== تنسيق محتويات اللوحة (عام) ===== */
 .coach-panel .coach-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     font-size: 0.85em;
     width: 100%;
-    direction: rtl;
 }
 
 .coach-panel .coach-name { 
@@ -652,8 +691,19 @@ body::before {
     overflow: hidden; 
     text-overflow: ellipsis; 
     flex: 1;
+}
+
+.coach-panel[data-index="0"] .coach-name,
+.coach-panel[data-index="2"] .coach-name {
     direction: rtl;
     text-align: right;
+}
+
+.coach-panel[data-index="1"] .coach-name,
+.coach-panel[data-index="3"] .coach-name {
+    direction: rtl;
+    text-align: right;
+    transform: rotate(180deg);
 }
 
 .coach-panel .coach-budget { 
@@ -666,6 +716,13 @@ body::before {
     text-align: left;
 }
 
+.coach-panel[data-index="1"] .coach-budget,
+.coach-panel[data-index="3"] .coach-budget {
+    transform: rotate(180deg);
+    margin-left: 5px;
+    margin-right: 0;
+}
+
 .coach-panel .coach-buttons {
     display: flex;
     gap: 6px;
@@ -673,7 +730,17 @@ body::before {
     margin: 6px 0;
     justify-content: flex-start;
     width: 100%;
+}
+
+.coach-panel[data-index="0"] .coach-buttons,
+.coach-panel[data-index="2"] .coach-buttons {
     direction: rtl;
+}
+
+.coach-panel[data-index="1"] .coach-buttons,
+.coach-panel[data-index="3"] .coach-buttons {
+    direction: ltr;
+    justify-content: flex-end;
 }
 
 .coach-panel .coach-buttons button {
@@ -688,6 +755,11 @@ body::before {
     transition: all 0.2s ease;
     color: white;
     direction: ltr;
+}
+
+.coach-panel[data-index="1"] .coach-buttons button,
+.coach-panel[data-index="3"] .coach-buttons button {
+    transform: rotate(180deg);
 }
 
 .coach-panel .coach-buttons button:hover { transform: scale(1.08); }
@@ -716,7 +788,17 @@ body::before {
     overflow-y: auto;
     justify-content: flex-start;
     width: 100%;
+}
+
+.coach-panel[data-index="0"] .coach-players,
+.coach-panel[data-index="2"] .coach-players {
     direction: rtl;
+}
+
+.coach-panel[data-index="1"] .coach-players,
+.coach-panel[data-index="3"] .coach-players {
+    direction: ltr;
+    justify-content: flex-end;
 }
 
 .coach-panel .coach-players .player-tag {
@@ -726,7 +808,17 @@ body::before {
     font-size: 0.6em;
     border: 1px solid rgba(255,255,255,0.05);
     white-space: nowrap;
+}
+
+.coach-panel[data-index="0"] .coach-players .player-tag,
+.coach-panel[data-index="2"] .coach-players .player-tag {
     direction: rtl;
+}
+
+.coach-panel[data-index="1"] .coach-players .player-tag,
+.coach-panel[data-index="3"] .coach-players .player-tag {
+    direction: rtl;
+    transform: rotate(180deg);
 }
 
 .coach-panel.active-panel {
@@ -958,3 +1050,4 @@ body::before {
     .coach-panel[data-index="2"] { bottom: 12px; left: 12px; }
     .coach-panel[data-index="3"] { top: 70px; left: 12px; }
 }
+
