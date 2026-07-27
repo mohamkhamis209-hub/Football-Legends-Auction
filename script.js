@@ -1,5 +1,6 @@
 // script.js - النسخة النهائية
 let gameState = {};
+let savedCoachNames = []; // حفظ الأسماء للعبة جديدة
 
 // ===== بدء اللعبة =====
 function startGameOriginal() {
@@ -8,6 +9,10 @@ function startGameOriginal() {
         alert('يرجى إدخال اسمين على الأقل');
         return;
     }
+
+    // حفظ الأسماء للاستخدام في لعبة جديدة
+    savedCoachNames = [...names];
+    localStorage.setItem('savedCoachNames', JSON.stringify(savedCoachNames));
 
     const budget = parseInt(document.getElementById('budget').value);
     const formation = document.getElementById('formation').value;
@@ -42,7 +47,8 @@ function startGameOriginal() {
         endCount: 0,
         allEnded: false,
         skipCount: 0,
-        skipMode: false
+        skipMode: false,
+        isGameOver: false
     };
 
     localStorage.setItem('gameState', JSON.stringify(gameState));
@@ -77,6 +83,7 @@ function loadAuction() {
     if (!gameState.remainingVeryWeak) gameState.remainingVeryWeak = [];
     if (!gameState.skipCount) gameState.skipCount = 0;
     if (!gameState.skipMode) gameState.skipMode = false;
+    if (!gameState.isGameOver) gameState.isGameOver = false;
 
     updateAuctionUI();
 }
@@ -234,9 +241,6 @@ function placeBid(coachIdx, amount) {
         return;
     }
 
-    // إزالة الحد الأقصى للمزايدة (50 مليون)
-    // المزايدة مفتوحة حسب الرصيد المتاح
-
     gameState.coaches.forEach(c => c.hasEnded = false);
     gameState.endCount = 0;
     gameState.allEnded = false;
@@ -271,16 +275,12 @@ function endBid(coachIdx) {
     renderCoachPanels();
 
     if (gameState.endCount >= gameState.coaches.length) {
-        // كل المدربين أنهوا
         gameState.allEnded = true;
         
-        // التحقق: هل فيه مزايدة؟
         const highest = getHighestBid();
         if (highest) {
-            // فيه مزايدة → ننهي المزاد عادي
             endAuction();
         } else {
-            // مفيش مزايدة → نسأل هل يريد تغيير اللاعب؟
             showChangePlayerDialog();
         }
         return;
@@ -291,10 +291,8 @@ function endBid(coachIdx) {
 
 // ===== عرض مربع حوار تغيير اللاعب =====
 function showChangePlayerDialog() {
-    // إخفاء أزرار المزايدة مؤقتاً
     document.querySelector('.coach-panels').style.pointerEvents = 'none';
     
-    // إنشاء مربع الحوار
     const dialog = document.createElement('div');
     dialog.className = 'change-player-dialog';
     dialog.style.cssText = `
@@ -332,22 +330,16 @@ function showChangePlayerDialog() {
     document.body.appendChild(dialog);
 }
 
-// ===== تغيير اللاعب =====
 function changePlayer() {
-    // إزالة مربع الحوار
     const dialog = document.querySelector('.change-player-dialog');
     if (dialog) dialog.remove();
-    
-    // إعادة تفعيل الأزرار
     document.querySelector('.coach-panels').style.pointerEvents = 'auto';
     
-    // حذف اللاعب الحالي من القائمة (نرميه)
     const round = gameState.round;
     if (round < gameState.remainingLegends.length) {
         gameState.remainingLegends.splice(round, 1);
     }
     
-    // إعادة ضبط الحالة
     gameState.currentBid = 5;
     gameState.currentBidder = null;
     gameState.endCount = 0;
@@ -361,16 +353,11 @@ function changePlayer() {
     showNotification('🔄 تم تغيير اللاعب، ابدأ المزايدة من جديد');
 }
 
-// ===== إلغاء تغيير اللاعب (يكملون عليه) =====
 function cancelChangePlayer() {
-    // إزالة مربع الحوار
     const dialog = document.querySelector('.change-player-dialog');
     if (dialog) dialog.remove();
-    
-    // إعادة تفعيل الأزرار
     document.querySelector('.coach-panels').style.pointerEvents = 'auto';
     
-    // إعادة ضبط حالة "إنهاء" عشان يكملوا مزايدة
     gameState.endCount = 0;
     gameState.allEnded = false;
     gameState.coaches.forEach(c => c.hasEnded = false);
@@ -381,12 +368,14 @@ function cancelChangePlayer() {
     showNotification('🔄 استمرار المزايدة على نفس اللاعب');
 }
 
-// ===== إنهاء المزاد =====
+// ===== إنهاء المزاد (بدون زر "التالي") =====
 function endAuction() {
     const round = gameState.round;
     const legends = gameState.remainingLegends;
 
     if (round >= legends.length) {
+        gameState.isGameOver = true;
+        localStorage.setItem('gameState', JSON.stringify(gameState));
         window.location.href = 'result.html';
         return;
     }
@@ -395,7 +384,6 @@ function endAuction() {
     const highest = getHighestBid();
     let winnerIdx = null;
 
-    // 1. توزيع الأسطورة على الفائز
     if (highest) {
         winnerIdx = highest.coachIdx;
         const winner = gameState.coaches[winnerIdx];
@@ -410,12 +398,10 @@ function endAuction() {
             winnerIdx = null;
         }
     } else {
-        // مفيش مزايدة (لن يحدث هنا لأننا نتعامل معها في showChangePlayerDialog)
         distributePlayerAutomatically(player);
         winnerIdx = null;
     }
 
-    // 2. توزيع عادي/ضعيف على الخاسرين فقط
     const losers = gameState.coaches.filter((c, idx) => idx !== winnerIdx);
     losers.forEach((coach) => {
         if (coach.budget >= 3 && gameState.remainingNormals.length > 0) {
@@ -432,7 +418,11 @@ function endAuction() {
         }
     });
 
-    // إعادة ضبط الحالة
+    // إزالة اللاعب الحالي من القائمة (تم توزيعه)
+    if (round < gameState.remainingLegends.length) {
+        gameState.remainingLegends.splice(round, 1);
+    }
+
     gameState.currentBid = 5;
     gameState.currentBidder = null;
     gameState.endCount = 0;
@@ -443,14 +433,46 @@ function endAuction() {
 
     localStorage.setItem('gameState', JSON.stringify(gameState));
 
+    // التحقق من اكتمال التشكيلة أو انتهاء الأساطير
     const allComplete = gameState.coaches.every(coach => coach.team.length >= 11);
     if (allComplete || gameState.remainingLegends.length === 0) {
+        gameState.isGameOver = true;
+        localStorage.setItem('gameState', JSON.stringify(gameState));
         window.location.href = 'result.html';
         return;
     }
 
-    document.getElementById('nextBtn').style.display = 'block';
-    renderCoachPanels();
+    // **إزالة زر "التالي" - ننتقل تلقائياً للاعب التالي**
+    setTimeout(() => {
+        nextPlayerAuto();
+    }, 1500);
+}
+
+// ===== الانتقال التلقائي للاعب التالي (بدون زر) =====
+function nextPlayerAuto() {
+    // لا نحتاج لزيادة round لأننا حذفنا اللاعب الحالي من القائمة
+    // فالـ round يشير الآن إلى اللاعب التالي تلقائياً
+    
+    gameState.currentBid = 5;
+    gameState.currentBidder = null;
+    gameState.endCount = 0;
+    gameState.allEnded = false;
+    gameState.coaches.forEach(c => c.hasEnded = false);
+    gameState.bidHistory = [];
+    gameState.skipMode = false;
+
+    localStorage.setItem('gameState', JSON.stringify(gameState));
+    
+    // التحقق إذا كان لسه فيه لاعبين
+    if (gameState.remainingLegends.length === 0) {
+        gameState.isGameOver = true;
+        localStorage.setItem('gameState', JSON.stringify(gameState));
+        window.location.href = 'result.html';
+        return;
+    }
+    
+    updateAuctionUI();
+    showNotification(`🔄 لاعب جديد: ${gameState.remainingLegends[0].name}`);
 }
 
 function distributePlayerAutomatically(player) {
@@ -474,7 +496,6 @@ function distributePlayerAutomatically(player) {
     showNotification(`❌ لا يوجد مدرب قادر على شراء ${player.name}`);
 }
 
-// ===== باقي الدوال =====
 function showNotification(message) {
     const existing = document.querySelector('.notification-toast');
     if (existing) existing.remove();
@@ -491,28 +512,7 @@ function showNotification(message) {
     }, 3500);
 }
 
-function nextPlayer() {
-    gameState.round++;
-    const legendsLength = gameState.remainingLegends.length;
-
-    if (gameState.round >= legendsLength) {
-        window.location.href = 'result.html';
-        return;
-    }
-
-    gameState.currentBid = 5;
-    gameState.currentBidder = null;
-    gameState.endCount = 0;
-    gameState.allEnded = false;
-    gameState.coaches.forEach(c => c.hasEnded = false);
-    gameState.bidHistory = [];
-    gameState.skipMode = false;
-
-    document.getElementById('nextBtn').style.display = 'none';
-    localStorage.setItem('gameState', JSON.stringify(gameState));
-    updateAuctionUI();
-}
-
+// ===== عرض النتيجة =====
 function showResult() {
     const saved = localStorage.getItem('gameState');
     if (!saved) { window.location.href = 'index.html'; return; }
@@ -585,6 +585,6 @@ window.onload = function() {
 
 window.placeBid = placeBid;
 window.endBid = endBid;
-window.nextPlayer = nextPlayer;
 window.changePlayer = changePlayer;
 window.cancelChangePlayer = cancelChangePlayer;
+
